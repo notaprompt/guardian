@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guardian — Neuroprotective Cognitive Infrastructure</title>
+  <meta name="description" content="Guardian is external cognitive infrastructure for minds that don't turn off. Grounded in the Topological-Recursive Identity Model (TRIM).">
+  <meta name="theme-color" content="#050505">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Guardian — Neuroprotective Cognitive Infrastructure">
+  <meta property="og:description" content="External cognitive infrastructure for minds that don't turn off.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/og-image.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+</head>
+<body>
+  <!-- ── Ambient Orbs ─────────────────────────────────────── -->
+  <div class="orb orb--warm" aria-hidden="true"></div>
+  <div class="orb orb--cool" aria-hidden="true"></div>
+  <div class="orb orb--glow" aria-hidden="true"></div>
+
+  <!-- ── Ink Texture Overlay ──────────────────────────────── -->
+  <div class="ink-texture" aria-hidden="true"></div>
+
+  <!-- ── Navigation ───────────────────────────────────────── -->
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <a href="#hero" class="nav__logo" aria-label="Guardian home">
+      <span class="nav__glyph">◈</span>
+      <span class="nav__wordmark">Guardian</span>
+    </a>
+    <div class="nav__links">
+      <a href="#problem" class="nav__link">Why</a>
+      <a href="#features" class="nav__link">Features</a>
+      <a href="#cockpit" class="nav__link">Cockpit</a>
+      <a href="#architecture" class="nav__link">TRIM</a>
+      <a href="https://github.com/notaprompt" class="nav__cta" target="_blank" rel="noopener noreferrer">Get Early Access</a>
+    </div>
+    <button class="nav__toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span>
+      <span></span>
+    </button>
+  </nav>
+
+  <!-- ── Mobile Menu ──────────────────────────────────────── -->
+  <div class="mobile-menu" aria-hidden="true">
+    <a href="#problem" class="mobile-menu__link">Why</a>
+    <a href="#features" class="mobile-menu__link">Features</a>
+    <a href="#cockpit" class="mobile-menu__link">Cockpit</a>
+    <a href="#architecture" class="mobile-menu__link">TRIM</a>
+    <a href="https://github.com/notaprompt" class="mobile-menu__cta" target="_blank" rel="noopener noreferrer">Get Early Access</a>
+  </div>
+
+  <main>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- HERO                                                    -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section id="hero" class="hero">
+      <div class="hero__container">
+        <div class="hero__glyph-container" aria-hidden="true">
+          <span class="hero__glyph">◈</span>
+          <div class="hero__glyph-ring"></div>
+          <div class="hero__glyph-ring hero__glyph-ring--outer"></div>
+        </div>
+        <h1 class="hero__title reveal">Guardian</h1>
+        <p class="hero__tagline reveal reveal--delay-1">External cognitive infrastructure<br>for minds that don't turn off.</p>
+        <p class="hero__sub reveal reveal--delay-2">Grounded in the Topological-Recursive Identity Model (TRIM)</p>
+        <div class="hero__actions reveal reveal--delay-3">
+          <a href="https://github.com/notaprompt" class="btn btn--primary" target="_blank" rel="noopener noreferrer">Get Early Access</a>
+          <a href="#problem" class="btn btn--ghost">Learn More</a>
+        </div>
+        <div class="hero__scroll-hint reveal reveal--delay-4" aria-hidden="true">
+          <div class="hero__scroll-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PROBLEM                                                 -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section id="problem" class="problem">
+      <div class="container">
+        <div class="section-label reveal">The Problem</div>
+        <h2 class="problem__heading reveal">
+          You already know what's happening.<br>
+          <span class="text-glow">That's the problem.</span>
+        </h2>
+        <div class="problem__grid">
+          <div class="problem__card reveal">
+            <div class="problem__icon">&#9632;</div>
+            <p class="problem__text">
+              Your mind doesn't have an off switch. Every insight propagates.
+              Every unresolved thread stays resident. Every loop re-derives
+              from scratch because nothing persists outside your head.
+            </p>
+          </div>
+          <div class="problem__card reveal">
+            <div class="problem__icon">&#9632;</div>
+            <p class="problem__text">
+              You've tried the tools. Note apps that add organizational overhead.
+              Chat wrappers that forget everything. Second-brain systems that
+              require you to be the librarian of your own thoughts.
+            </p>
+          </div>
+          <div class="problem__card reveal">
+            <div class="problem__icon">&#9632;</div>
+            <p class="problem__text">
+              The cost isn't just time. It's substrate. Every thought held internally,
+              every loop re-run, every insight re-derived is metabolic wear on the
+              very infrastructure that makes you <em>you</em>.
+            </p>
+          </div>
+        </div>
+        <p class="problem__closing reveal">
+          Guardian exists because you shouldn't have to choose between<br class="hide-mobile">
+          the depth of your thinking and the longevity of the architecture that produces it.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- FEATURES                                                -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section id="features" class="features">
+      <div class="container">
+        <div class="section-label reveal">Capabilities</div>
+        <h2 class="features__heading reveal">
+          Everything persists.<br>
+          <span class="text-glow">Nothing is lost.</span>
+        </h2>
+        <div class="features__grid">
+
+          <article class="feature-card reveal">
+            <div class="feature-card__number">01</div>
+            <h3 class="feature-card__title">Memory Engine</h3>
+            <p class="feature-card__desc">
+              Every conversation, every artifact, every moment of clarity at 3am.
+              Stored, indexed, semantically searchable. The externalized recursive
+              structure that TRIM predicts is neuroprotective.
+            </p>
+            <div class="feature-card__tags">
+              <span class="tag">Full-text search</span>
+              <span class="tag">Vector embeddings</span>
+              <span class="tag">Session continuity</span>
+            </div>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-card__number">02</div>
+            <h3 class="feature-card__title">Navigation Instruments</h3>
+            <p class="feature-card__desc">
+              Token burn rate. Session depth. Integration queue. Ambient state orbs
+              that respond to your cognitive load. The telemetry of your own process,
+              visible without demanding attention.
+            </p>
+            <div class="feature-card__tags">
+              <span class="tag">Session telemetry</span>
+              <span class="tag">Integration queue</span>
+              <span class="tag">Ambient orbs</span>
+            </div>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-card__number">03</div>
+            <h3 class="feature-card__title">TRIM-Aware Chat</h3>
+            <p class="feature-card__desc">
+              Not just a Claude interface. Context injection from your memory engine.
+              Awareness-trap detection. Session continuity that means you never have
+              to say "remember when we talked about..."
+            </p>
+            <div class="feature-card__tags">
+              <span class="tag">Context injection</span>
+              <span class="tag">Awareness-trap detection</span>
+              <span class="tag">Thinking display</span>
+            </div>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-card__number">04</div>
+            <h3 class="feature-card__title">Integrated Terminal</h3>
+            <p class="feature-card__desc">
+              A real PTY, not a simulation. Split panes. Command history captured
+              and searchable. Terminal-to-chat bridge: select an error, ask Guardian,
+              get an answer. No context-switching cost.
+            </p>
+            <div class="feature-card__tags">
+              <span class="tag">Real PTY</span>
+              <span class="tag">Split panes</span>
+              <span class="tag">Chat bridge</span>
+            </div>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-card__number">05</div>
+            <h3 class="feature-card__title">Notes System</h3>
+            <p class="feature-card__desc">
+              Three modes of externalization: scratch notes for the 3am thought,
+              structured notes for design documents, journal entries for the
+              observational practice that precedes navigation.
+            </p>
+            <div class="feature-card__tags">
+              <span class="tag">Scratch capture</span>
+              <span class="tag">Markdown editing</span>
+              <span class="tag">Memory integration</span>
+            </div>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-card__number">06</div>
+            <h3 class="feature-card__title">Knowledge Graph</h3>
+            <p class="feature-card__desc">
+              Entities, relationships, and conceptual topology extracted from your
+              conversations. See the structure of your thinking, not just search
+              through it linearly. Your recursive architecture, mapped.
+            </p>
+            <div class="feature-card__tags">
+              <span class="tag">Entity extraction</span>
+              <span class="tag">Relationship mapping</span>
+              <span class="tag">Force-directed visualization</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- THE COCKPIT                                             -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section id="cockpit" class="cockpit">
+      <div class="container">
+        <div class="section-label reveal">The Interface</div>
+        <h2 class="cockpit__heading reveal">
+          Not tabs. Not windows.<br>
+          <span class="text-glow">A cockpit.</span>
+        </h2>
+        <p class="cockpit__desc reveal">
+          Everything visible simultaneously. Terminal, chat, notes, artifacts — all present,
+          all accessible without mode changes. Keyboard-first. Resizable panels. Built for
+          minds that don't context-switch cleanly.
+        </p>
+        <div class="cockpit__showcase reveal">
+          <div class="cockpit__window">
+            <div class="cockpit__titlebar">
+              <div class="cockpit__dots">
+                <span></span><span></span><span></span>
+              </div>
+              <span class="cockpit__titlebar-text">Guardian</span>
+            </div>
+            <div class="cockpit__layout">
+              <div class="cockpit__panel cockpit__panel--terminal">
+                <div class="cockpit__panel-header">Terminal</div>
+                <div class="cockpit__panel-content">
+                  <code class="cockpit__code">
+                    <span class="cockpit__prompt">~</span> <span class="cockpit__cmd">guardian --resume</span><br>
+                    <span class="cockpit__output">Session restored. 847 messages indexed.</span><br>
+                    <span class="cockpit__output">Memory engine: 2,341 artifacts cached.</span><br>
+                    <span class="cockpit__prompt">~</span> <span class="cockpit__cursor">|</span>
+                  </code>
+                </div>
+              </div>
+              <div class="cockpit__panel cockpit__panel--chat">
+                <div class="cockpit__panel-header">Chat</div>
+                <div class="cockpit__panel-content">
+                  <div class="cockpit__message cockpit__message--user">
+                    that thread about thermodynamic consciousness — what did we land on?
+                  </div>
+                  <div class="cockpit__message cockpit__message--assistant">
+                    <span class="cockpit__thinking">[thinking...]</span>
+                    From your session on Jan 14 — you concluded that...
+                  </div>
+                </div>
+              </div>
+              <div class="cockpit__panel cockpit__panel--notes">
+                <div class="cockpit__panel-header">Notes</div>
+                <div class="cockpit__panel-content">
+                  <div class="cockpit__note-item">scratch: 3am insight re: coupling</div>
+                  <div class="cockpit__note-item cockpit__note-item--active">structured: TRIM v6 notes</div>
+                  <div class="cockpit__note-item">journal: Feb 8 reflection</div>
+                </div>
+              </div>
+              <div class="cockpit__panel cockpit__panel--artifacts">
+                <div class="cockpit__panel-header">Artifacts</div>
+                <div class="cockpit__panel-content">
+                  <div class="cockpit__artifact">schema.sql <span class="cockpit__artifact-ver">v3</span></div>
+                  <div class="cockpit__artifact">architecture-diagram.svg</div>
+                  <div class="cockpit__artifact">integration-queue.md</div>
+                </div>
+              </div>
+            </div>
+            <div class="cockpit__statusbar">
+              <span class="cockpit__status-dot"></span>
+              <span>Session 2h 14m</span>
+              <span>1,247 tokens/min</span>
+              <span>queue: 3 open</span>
+              <span class="cockpit__status-model">claude-opus-4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ARCHITECTURE / TRIM                                     -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section id="architecture" class="architecture">
+      <div class="container">
+        <div class="section-label reveal">The Foundation</div>
+        <h2 class="architecture__heading reveal">
+          Grounded in theory.<br>
+          <span class="text-glow">Built on TRIM.</span>
+        </h2>
+        <div class="architecture__content">
+          <div class="architecture__text reveal">
+            <p>
+              The Topological-Recursive Identity Model makes a specific, falsifiable prediction:
+              individuals who consistently externalize recursive structure — systematic logging,
+              structured AI interaction, retrievable written architecture — should show measurably
+              reduced substrate wear compared to those who hold equivalent depth internally.
+            </p>
+            <p>
+              Guardian is that externalized structure made literal. Every feature exists to answer
+              one question: <strong>does this reduce the metabolic cost of maintaining recursive
+              structure internally?</strong>
+            </p>
+            <p>
+              If a feature does not serve that function, it does not ship.
+            </p>
+          </div>
+          <div class="architecture__layers reveal">
+            <div class="architecture__layer">
+              <div class="architecture__layer-label">Presentation</div>
+              <div class="architecture__layer-desc">What you see and touch</div>
+            </div>
+            <div class="architecture__layer">
+              <div class="architecture__layer-label">Cognition</div>
+              <div class="architecture__layer-desc">Where AI interaction happens</div>
+            </div>
+            <div class="architecture__layer">
+              <div class="architecture__layer-label">Memory</div>
+              <div class="architecture__layer-desc">Where everything persists</div>
+            </div>
+            <div class="architecture__layer">
+              <div class="architecture__layer-label">Substrate</div>
+              <div class="architecture__layer-desc">System-level infrastructure</div>
+            </div>
+          </div>
+        </div>
+        <div class="architecture__principles">
+          <div class="architecture__principle reveal">
+            <h3>Match the Architecture</h3>
+            <p>The interface mirrors the phenomenology of the user it serves. No context-switching. No mode changes. A cockpit, not a set of tabs.</p>
+          </div>
+          <div class="architecture__principle reveal">
+            <h3>Reduce Metabolic Load</h3>
+            <p>Every interaction leaves you with less internal state to maintain, not more. Chat accepts stream-of-consciousness. The system organizes.</p>
+          </div>
+          <div class="architecture__principle reveal">
+            <h3>Persist Everything</h3>
+            <p>Nothing generated through Guardian is ever lost. The entire history is the external recursive structure. Deleting is your choice, never the system's.</p>
+          </div>
+          <div class="architecture__principle reveal">
+            <h3>Make the Invisible Visible</h3>
+            <p>How many tokens burned. How conversation patterns shift under stress. Whether the integration queue is growing or shrinking. Your cognitive telemetry, surfaced.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- CTA                                                     -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="cta">
+      <div class="container">
+        <div class="cta__content reveal">
+          <span class="cta__glyph" aria-hidden="true">◈</span>
+          <h2 class="cta__heading">Guardian is not a tool you use.<br>It is infrastructure you depend on.</h2>
+          <a href="https://github.com/notaprompt" class="btn btn--primary btn--lg" target="_blank" rel="noopener noreferrer">Get Early Access</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- FOOTER                                                  -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <span class="footer__glyph">◈</span>
+          <span class="footer__name">Guardian</span>
+          <p class="footer__tagline">Neuroprotective cognitive infrastructure.</p>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__col-title">Product</h4>
+          <a href="#features" class="footer__link">Features</a>
+          <a href="#cockpit" class="footer__link">Cockpit</a>
+          <a href="#architecture" class="footer__link">Architecture</a>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__col-title">Research</h4>
+          <a href="#architecture" class="footer__link">TRIM Framework</a>
+          <a href="#problem" class="footer__link">Phase-Lock Architecture</a>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__col-title">Connect</h4>
+          <a href="https://github.com/notaprompt" class="footer__link" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">&copy; 2026 Guardian. Built by A. Campos.</p>
+        <p class="footer__trim">Grounded in TRIM v5 — Topological-Recursive Identity Model</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

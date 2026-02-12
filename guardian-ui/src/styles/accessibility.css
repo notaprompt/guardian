@@ -1,0 +1,281 @@
+/* ── Guardian Accessibility ──────────────────────────────────── */
+/* Three pillars:
+   1. Screen reader: ARIA labels/roles/live on everything interactive
+   2. High contrast: @media (prefers-contrast: more) + manual .high-contrast toggle
+   3. Reduced motion: @media (prefers-reduced-motion: reduce) + manual .reduced-motion toggle
+*/
+
+/* ── Skip Navigation Link ──────────────────────────────────── */
+
+.skip-nav {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 10000;
+  padding: 8px 16px;
+  background: var(--glow);
+  color: var(--void);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 6px 6px;
+  opacity: 0;
+  transition: top 0.15s ease, opacity 0.15s ease;
+}
+
+.skip-nav:focus {
+  top: 0;
+  opacity: 1;
+}
+
+/* ── Focus Ring Styles ─────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring, rgba(232, 220, 200, 0.6));
+  outline-offset: 2px;
+}
+
+/* Remove outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Screen Reader Only ────────────────────────────────────── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Reduced Motion ────────────────────────────────────────── */
+/* System preference */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .orb {
+    animation: none !important;
+  }
+
+  .orb--glow {
+    animation: none !important;
+  }
+
+  .synapse-layer line {
+    animation: none !important;
+  }
+
+  .bottom-bar__alive-dot {
+    animation: none !important;
+  }
+
+  .chat-thinking {
+    animation: none !important;
+  }
+
+  .thinking-indicator__icon--streaming {
+    animation: none !important;
+  }
+
+  .bottom-bar__drift {
+    animation: none !important;
+    opacity: 0.6;
+  }
+}
+
+/* Manual toggle via class on body */
+
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduced-motion .orb {
+  animation: none !important;
+}
+
+.reduced-motion .orb--glow {
+  animation: none !important;
+}
+
+.reduced-motion .synapse-layer line {
+  animation: none !important;
+}
+
+.reduced-motion .bottom-bar__alive-dot {
+  animation: none !important;
+}
+
+.reduced-motion .chat-thinking {
+  animation: none !important;
+}
+
+.reduced-motion .thinking-indicator__icon--streaming {
+  animation: none !important;
+}
+
+.reduced-motion .bottom-bar__drift {
+  animation: none !important;
+  opacity: 0.6;
+}
+
+/* ── High Contrast ─────────────────────────────────────────── */
+/* System preference — ensures 4.5:1 minimum contrast ratio */
+
+@media (prefers-contrast: more) {
+  :root {
+    --glow: #F5E8CC;
+    --glow-dim: rgba(245, 232, 204, 0.12);
+    --glow-trace: rgba(245, 232, 204, 0.08);
+    --glow-line: rgba(245, 232, 204, 0.20);
+    --glow-pulse: rgba(245, 232, 204, 0.30);
+
+    --white-90: rgba(255, 255, 255, 1.00);
+    --white-70: rgba(255, 255, 255, 0.90);
+    --white-60: rgba(255, 255, 255, 0.85);
+    --white-45: rgba(255, 255, 255, 0.75);
+    --white-30: rgba(255, 255, 255, 0.65);
+    --white-20: rgba(255, 255, 255, 0.55);
+    --white-15: rgba(255, 255, 255, 0.45);
+    --white-08: rgba(255, 255, 255, 0.25);
+    --white-04: rgba(255, 255, 255, 0.15);
+    --white-02: rgba(255, 255, 255, 0.08);
+
+    --alive: #6FFF9E;
+    --alive-dim: rgba(111, 255, 158, 0.15);
+    --danger: #FF6B6B;
+
+    --focus-ring: #F5E8CC;
+
+    --depth-1: #0A0A0A;
+    --depth-2: #0F0F0F;
+    --depth-3: #161616;
+    --depth-4: #1E1E1E;
+  }
+
+  .zone {
+    border-width: 2px;
+    border-color: var(--glow-line);
+  }
+
+  .zone--focused {
+    border-color: var(--glow);
+    box-shadow: inset 0 0 0 1px var(--glow-line);
+  }
+
+  .zone-head {
+    border-bottom-width: 2px;
+  }
+
+  .chat-message--user {
+    border-width: 2px;
+  }
+
+  .chat-message--assistant {
+    border-width: 2px;
+  }
+
+  .chat-input {
+    border-width: 2px;
+  }
+
+  .zone-head__btn:focus-visible,
+  .chat-send-btn:focus-visible,
+  .chat-attach-btn:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .queue-item__actions {
+    opacity: 1;
+  }
+
+  .search-result__actions {
+    opacity: 1;
+  }
+}
+
+/* Manual toggle via class on body */
+
+.high-contrast {
+  --glow: #F5E8CC;
+  --glow-dim: rgba(245, 232, 204, 0.12);
+  --glow-trace: rgba(245, 232, 204, 0.08);
+  --glow-line: rgba(245, 232, 204, 0.20);
+  --glow-pulse: rgba(245, 232, 204, 0.30);
+
+  --white-90: rgba(255, 255, 255, 1.00);
+  --white-70: rgba(255, 255, 255, 0.90);
+  --white-60: rgba(255, 255, 255, 0.85);
+  --white-45: rgba(255, 255, 255, 0.75);
+  --white-30: rgba(255, 255, 255, 0.65);
+  --white-20: rgba(255, 255, 255, 0.55);
+  --white-15: rgba(255, 255, 255, 0.45);
+  --white-08: rgba(255, 255, 255, 0.25);
+  --white-04: rgba(255, 255, 255, 0.15);
+  --white-02: rgba(255, 255, 255, 0.08);
+
+  --alive: #6FFF9E;
+  --alive-dim: rgba(111, 255, 158, 0.15);
+  --danger: #FF6B6B;
+
+  --focus-ring: #F5E8CC;
+
+  --depth-1: #0A0A0A;
+  --depth-2: #0F0F0F;
+  --depth-3: #161616;
+  --depth-4: #1E1E1E;
+}
+
+.high-contrast .zone {
+  border-width: 2px;
+  border-color: var(--glow-line);
+}
+
+.high-contrast .zone--focused {
+  border-color: var(--glow);
+  box-shadow: inset 0 0 0 1px var(--glow-line);
+}
+
+.high-contrast .zone-head {
+  border-bottom-width: 2px;
+}
+
+.high-contrast .chat-message--user {
+  border-width: 2px;
+}
+
+.high-contrast .chat-message--assistant {
+  border-width: 2px;
+}
+
+.high-contrast .chat-input {
+  border-width: 2px;
+}
+
+.high-contrast .queue-item__actions {
+  opacity: 1;
+}
+
+.high-contrast .search-result__actions {
+  opacity: 1;
+}

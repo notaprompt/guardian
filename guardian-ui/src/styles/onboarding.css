@@ -1,0 +1,177 @@
+/* ── Onboarding — Workspace Setup (Step 3) ───────────────── */
+/* Base onboarding styles live in panels.css (.onboarding__*) */
+/* This file adds workspace-setup-specific styles            */
+
+.onboarding__step-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--white-20);
+  margin-bottom: 4px;
+}
+
+.onboarding__arch-result {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--white-30);
+  margin-bottom: 8px;
+}
+
+.onboarding__arch-result strong {
+  color: var(--glow);
+}
+
+.onboarding__workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.onboarding__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onboarding__field-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--white-30);
+}
+
+.onboarding__field-hint {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--white-15);
+  letter-spacing: 0.04em;
+}
+
+/* ── Shell Select Group ──────────────────────────────────── */
+
+.onboarding__select-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.onboarding__select-btn {
+  padding: 6px 14px;
+  background: var(--depth-2);
+  border: 1px solid var(--glow-trace);
+  border-radius: 6px;
+  color: var(--white-30);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.onboarding__select-btn:hover {
+  background: var(--depth-3);
+  border-color: var(--glow-line);
+  color: var(--white-60);
+}
+
+.onboarding__select-btn--active {
+  background: var(--glow-dim);
+  border-color: var(--glow-line);
+  color: var(--glow);
+}
+
+/* ── Model Select Group ──────────────────────────────────── */
+
+.onboarding__model-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onboarding__model-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--depth-2);
+  border: 1px solid var(--glow-trace);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.onboarding__model-btn:hover {
+  background: var(--depth-3);
+  border-color: var(--glow-line);
+}
+
+.onboarding__model-btn--active {
+  background: var(--glow-dim);
+  border-color: var(--glow-line);
+}
+
+.onboarding__model-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--white-60);
+  min-width: 60px;
+}
+
+.onboarding__model-btn--active .onboarding__model-name {
+  color: var(--glow);
+}
+
+.onboarding__model-desc {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--white-20);
+}
+
+.onboarding__model-btn--active .onboarding__model-desc {
+  color: var(--white-30);
+}
+
+/* ── Note Import ─────────────────────────────────────────── */
+
+.onboarding__import-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.onboarding__import-btn {
+  padding: 8px 16px;
+  background: var(--depth-2);
+  border: 1px solid var(--glow-trace);
+  border-radius: 6px;
+  color: var(--white-30);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.onboarding__import-btn:hover {
+  background: var(--depth-3);
+  border-color: var(--glow-line);
+  color: var(--white-60);
+}
+
+.onboarding__import-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.onboarding__import-result {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--alive);
+  letter-spacing: 0.04em;
+}

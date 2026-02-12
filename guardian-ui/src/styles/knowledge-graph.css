@@ -1,0 +1,226 @@
+/* ── Knowledge Graph — Void Architecture ───────────────────── */
+
+.knowledge-graph {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: var(--void);
+  overflow: hidden;
+}
+
+.knowledge-graph__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+
+.knowledge-graph__canvas:active {
+  cursor: grabbing;
+}
+
+/* ── Empty state ───────────────────────────────────────────── */
+
+.knowledge-graph__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: var(--white-30);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.knowledge-graph__empty-icon {
+  font-size: 28px;
+  color: var(--white-15);
+  font-family: var(--display);
+}
+
+/* ── Loading state ─────────────────────────────────────────── */
+
+.knowledge-graph__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+  color: var(--white-30);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.knowledge-graph__loading-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--glow);
+  border-radius: 50%;
+  animation: kg-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes kg-pulse {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ── Tooltip (node hover) ──────────────────────────────────── */
+
+.knowledge-graph__tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--depth-3);
+  border: 1px solid var(--glow-line);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--white-70);
+  max-width: 220px;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.knowledge-graph__tooltip-name {
+  color: var(--glow);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.knowledge-graph__tooltip-type {
+  color: var(--white-45);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.knowledge-graph__tooltip-count {
+  color: var(--white-30);
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+/* ── Node detail panel (click) ─────────────────────────────── */
+
+.knowledge-graph__detail {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 220px;
+  background: var(--depth-2);
+  border: 1px solid var(--glow-line);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--white-70);
+  z-index: 20;
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+}
+
+.knowledge-graph__detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.knowledge-graph__detail-name {
+  color: var(--glow);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.knowledge-graph__detail-close {
+  background: none;
+  border: none;
+  color: var(--white-30);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.knowledge-graph__detail-close:hover {
+  color: var(--white-70);
+}
+
+.knowledge-graph__detail-meta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 10px;
+  color: var(--white-30);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.knowledge-graph__detail-section {
+  margin-bottom: 8px;
+}
+
+.knowledge-graph__detail-label {
+  color: var(--white-30);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.knowledge-graph__detail-session {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--white-04);
+  color: var(--white-45);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.knowledge-graph__detail-session:hover {
+  color: var(--glow);
+}
+
+.knowledge-graph__detail-session:last-child {
+  border-bottom: none;
+}
+
+/* ── Legend ─────────────────────────────────────────────────── */
+
+.knowledge-graph__legend {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--white-30);
+  z-index: 5;
+}
+
+.knowledge-graph__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.knowledge-graph__legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ── Extract status bar ────────────────────────────────────── */
+
+.knowledge-graph__status {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--white-20);
+  z-index: 5;
+}

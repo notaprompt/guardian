@@ -1,0 +1,14 @@
+node_modules/
+dist/
+release/
+.vite/
+*.log
+.DS_Store
+Thumbs.db
+
+# Electron
+out/
+
+# Local Claude Code config (personal, don't commit)
+.claude/settings.local.json
+CLAUDE.local.md

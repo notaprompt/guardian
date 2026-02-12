@@ -1,0 +1,77 @@
+/* ── Guardian Theme — Void Architecture ─────────────────────── */
+
+:root {
+  /* Depth hierarchy */
+  --void: #050505;
+  --depth-1: #080808;
+  --depth-2: #0C0C0C;
+  --depth-3: #111111;
+  --depth-4: #171717;
+
+  /* Glow — warm spectral */
+  --glow: #E8DCC8;
+  --glow-hot: #F2E6D0;
+  --glow-dim: rgba(232,220,200, 0.06);
+  --glow-trace: rgba(232,220,200, 0.03);
+  --glow-line: rgba(232,220,200, 0.09);
+  --glow-pulse: rgba(232,220,200, 0.18);
+
+  /* White opacity scale */
+  --white-90: rgba(255,255,255,0.90);
+  --white-70: rgba(255,255,255,0.70);
+  --white-60: rgba(255,255,255,0.60);
+  --white-45: rgba(255,255,255,0.45);
+  --white-30: rgba(255,255,255,0.30);
+  --white-20: rgba(255,255,255,0.20);
+  --white-15: rgba(255,255,255,0.15);
+  --white-08: rgba(255,255,255,0.08);
+  --white-04: rgba(255,255,255,0.04);
+  --white-02: rgba(255,255,255,0.02);
+
+  /* Semantic */
+  --alive: #5BF29B;
+  --alive-dim: rgba(91,242,155, 0.08);
+  --danger: #c75050;
+
+  /* Accessibility */
+  --focus-ring: rgba(232, 220, 200, 0.6);
+
+  /* Typography */
+  --display: 'Space Grotesk', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --serif: 'Newsreader', serif;
+}
+
+/* ── Reset & Base ──────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+  background: var(--void);
+  color: var(--white-90);
+  font-family: var(--display);
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: crosshair;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbars ────────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 2px; height: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--white-08); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--white-15); }
+
+/* ── Selection ─────────────────────────────────────────────── */
+
+::selection { background: rgba(232,220,200, 0.12); }

@@ -1,0 +1,118 @@
+# ═══════════════════════════════════════════════════════════════
+# Guardian — electron-builder configuration
+# Spec ref: Phase 4 (X. Technical Architecture / SUBSTRATE layer)
+# ═══════════════════════════════════════════════════════════════
+
+appId: com.guardian.app
+productName: Guardian
+copyright: Copyright © 2026 Guardian
+
+# ── Directories ──────────────────────────────────────────────
+directories:
+  output: release
+  buildResources: build
+
+# ── Files to include in the ASAR ─────────────────────────────
+files:
+  - dist/**/*
+  - index.js
+  - main.js
+  - preload.js
+  - lib/**/*
+  - package.json
+  - "!.git/**"
+  - "!.github/**"
+  - "!src/**"
+  - "!arch/**"
+  - "!.claude/**"
+  - "!node_modules/.cache/**"
+
+# ── ASAR archive ─────────────────────────────────────────────
+asar: true
+asarUnpack:
+  - "node_modules/node-pty/**"
+  - "node_modules/better-sqlite3/**"
+  - "node_modules/sharp/**"
+  - "node_modules/@img/**"
+
+# ── Auto-update — GitHub Releases ────────────────────────────
+publish:
+  provider: github
+  owner: notaprompt
+  repo: guardian-ui
+  releaseType: release
+
+# ── Windows ──────────────────────────────────────────────────
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  icon: build/icons/icon-256.png
+  artifactName: "Guardian-${version}-Setup.${ext}"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Guardian
+
+portable:
+  artifactName: "Guardian-${version}-Portable.${ext}"
+
+# ── macOS ────────────────────────────────────────────────────
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: build/icon.png
+  category: public.app-category.productivity
+  artifactName: "Guardian-${version}-mac.${ext}"
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+# ── Linux ────────────────────────────────────────────────────
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  icon: build/icon.png
+  category: Utility
+  artifactName: "Guardian-${version}-linux.${ext}"
+  synopsis: Neuroprotective cognitive infrastructure
+  description: >
+    External cognitive infrastructure for minds that don't turn off.
+    Terminal, chat, notes, and memory search in a unified workspace.
+
+appImage:
+  license: LICENSE
+
+# ── Native module rebuild ────────────────────────────────────
+npmRebuild: true
+nodeGypRebuild: false
+
+# ── Extra resources (icons, entitlements) ────────────────────
+extraResources:
+  - from: build/
+    to: build/
+    filter:
+      - "**/*"
