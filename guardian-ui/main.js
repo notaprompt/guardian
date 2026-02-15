@@ -32,6 +32,8 @@ const knowledgeGraph = require('./lib/knowledge-graph');
 const backup = require('./lib/backup');
 const exporter = require('./lib/exporter');
 const importer = require('./lib/importer');
+const importParser = require('./lib/import-parser');
+const importWorker = require('./lib/import-worker');
 const metrics = require('./lib/metrics');
 const perf = require('./lib/performance');
 const librarian = require('./lib/librarian');
@@ -42,13 +44,18 @@ const secureStore = require('./lib/secure-store');
 perf.markStartupBegin();
 
 // ── Auto-Updater (GitHub Releases) ──────────────────────────────
-const { autoUpdater } = require('electron-updater');
-
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
-autoUpdater.logger = log;
+let autoUpdater = null;
+try {
+  autoUpdater = require('electron-updater').autoUpdater;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.logger = log;
+} catch (e) {
+  log.warn('Auto-updater unavailable (dev mode):', e.message);
+}
 
 function setupAutoUpdater() {
+  if (!autoUpdater) return;
   autoUpdater.on('checking-for-update', () => {
     log.info('Auto-updater: checking for update...');
     send('guardian:update:status', { status: 'checking' });
@@ -109,8 +116,9 @@ const claudeBinDir = path.join(os.homedir(), '.local', 'bin');
 const sep = process.platform === 'win32' ? ';' : ':';
 const currentPath = process.env.Path || process.env.PATH || '';
 const newPath = claudeBinDir + sep + currentPath;
+const { CLAUDECODE: _drop, ...cleanEnv } = process.env;
 const ptyEnv = {
-  ...process.env,
+  ...cleanEnv,
   Path: newPath,
   PATH: newPath,
   ...(process.platform !== 'win32' ? { TERM: 'xterm-256color', COLORTERM: 'truecolor' } : {})
@@ -173,8 +181,21 @@ function createWindow() {
   });
 
   const isDev = !app.isPackaged;
+  const DEV_URL = 'http://localhost:5173';
+
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+    let retries = 0;
+    const tryLoad = () => {
+      mainWindow.loadURL(DEV_URL).catch(() => {
+        if (++retries < 20 && mainWindow && !mainWindow.isDestroyed()) {
+          log.info(`Vite not ready (attempt ${retries}/20), retrying...`);
+          setTimeout(tryLoad, 500);
+        } else {
+          log.error('Failed to connect to Vite dev server at', DEV_URL);
+        }
+      });
+    };
+    tryLoad();
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
@@ -601,9 +622,93 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
   // Metrics: track model usage
   metrics.track.modelUsed(modelResult.modelId);
 
-  const args = ['-p', prompt, '--verbose', '--output-format', 'stream-json', '--model', modelResult.modelId];
+  // ── Provider dispatch: non-CLI providers use the providers registry ──
+  if (modelResult.provider !== 'claude-cli') {
+    log.info('Dispatching to provider:', modelResult.provider, 'model:', modelResult.modelId);
 
-  // Image attachments → temp files → --file flags
+    // Look up provider config from DB for base_url
+    const provRow = database.providerStore.get(modelResult.provider);
+    const baseUrl = provRow?.base_url || null;
+
+    // Build or find the right provider instance
+    let providerInstance = providers.registry.getProvider(modelResult.provider);
+    if (!providerInstance && baseUrl) {
+      // Create an ad-hoc OpenAI-compatible provider for DB-registered providers
+      const apiKey = secureStore.getKey(modelResult.provider);
+      const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(baseUrl);
+      const adhoc = new providers.OpenAIProvider({
+        apiKey,
+        baseUrl,
+        name: provRow?.name || modelResult.provider,
+        keyName: modelResult.provider,
+        noAuth: isLocal && !apiKey,
+      });
+      providerInstance = adhoc;
+    }
+    if (!providerInstance) {
+      send('guardian:chat:error', { error: `Provider "${modelResult.provider}" not available` });
+      send('guardian:chat:done', { exitCode: 1 });
+      return { ok: false, error: 'Provider not found' };
+    }
+
+    const msgs = [
+      { role: 'system', content: 'You are Guardian, a focused AI assistant inside a desktop productivity app. Respond directly to the user\'s message. Be concise and helpful. Never roleplay as the user, never continue the user\'s thoughts, and never generate fake user messages. Context blocks wrapped in [guardian-*] tags are background reference — use them to inform your answer but do not repeat or narrate them.' },
+      { role: 'user', content: prompt },
+    ];
+    const maxTok = modelResult.tier === 'quick' ? 512 : 4096;
+    const emitter = providerInstance.sendMessage(msgs, {
+      model: modelResult.modelId,
+      stream: true,
+      maxTokens: maxTok,
+    });
+
+    let assistantContent = '';
+    const asstMsgId = `m_${Date.now()}_a`;
+
+    emitter.on('text_delta', (ev) => {
+      assistantContent += ev.text;
+      telemetry.systemState = 'responding';
+      send('guardian:chat:event', { type: 'content_block_delta', delta: { type: 'text_delta', text: ev.text } });
+    });
+
+    emitter.on('result', (ev) => {
+      if (ev.usage) {
+        telemetry.addTokens(ev.usage.input_tokens, ev.usage.output_tokens, 0);
+        database.usage.append({
+          sessionId: currentSessionId,
+          inputTokens: ev.usage.input_tokens || 0,
+          outputTokens: ev.usage.output_tokens || 0,
+        });
+        database.sessions.updateTokens(currentSessionId, ev.usage.input_tokens || 0, ev.usage.output_tokens || 0);
+      }
+      send('guardian:chat:event', { type: 'result', usage: ev.usage });
+    });
+
+    emitter.on('error', (ev) => {
+      send('guardian:chat:error', { error: ev.error, type: 'unknown' });
+    });
+
+    emitter.on('done', () => {
+      if (assistantContent) {
+        database.messages.create({
+          id: asstMsgId, sessionId: currentSessionId, role: 'assistant',
+          content: assistantContent, thinking: null, timestamp: new Date().toISOString(),
+        });
+      }
+      telemetry.systemState = 'idle';
+      send('guardian:chat:done', { exitCode: 0, sessionId: currentSessionId });
+      log.info('Provider chat done:', modelResult.provider);
+    });
+
+    // Store abort handle
+    chatProcess = { kill: () => emitter.abort && emitter.abort() };
+    return { ok: true, provider: modelResult.provider };
+  }
+
+  // ── Claude CLI path ──────────────────────────────────────────
+  const args = ['--verbose', '--output-format', 'stream-json', '--model', modelResult.modelId];
+
+  // All attachments (images + text docs) → temp files → --file flags
   if (attachments && attachments.length > 0) {
     for (const att of attachments) {
       if (att.isImage || (att.type && att.type.startsWith('image/'))) {
@@ -626,8 +731,11 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
     proc = spawn(claudePath, args, {
       cwd: process.cwd(),
       env: ptyEnv,
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['pipe', 'pipe', 'pipe']
     });
+    // Feed prompt via stdin to avoid arg length limits
+    proc.stdin.write(prompt);
+    proc.stdin.end();
   } catch (e) {
     log.error('Failed to spawn Claude CLI:', e.message);
     send('guardian:chat:error', { error: `Failed to start Claude: ${e.message}` });
@@ -1187,7 +1295,7 @@ ipcMain.handle('guardian:model:get', () => {
       ok: true,
       modelId: forgeframe.getSelectedModel(),
       autoRoute: forgeframe.getAutoRoute(),
-      models: forgeframe.MODELS,
+      models: forgeframe.getModels(),
     };
   } catch (e) {
     return { ok: false, error: e.message };
@@ -1746,6 +1854,131 @@ ipcMain.handle('guardian:import:obsidian', async () => {
   }
 });
 
+// ── Conversation Import (ChatGPT / Claude exports) ──────────────
+
+ipcMain.handle('guardian:import:conversations:selectFile', async () => {
+  try {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openFile'],
+      filters: [
+        { name: 'Conversation Exports', extensions: ['json', 'zip'] },
+      ],
+      title: 'Select ChatGPT or Claude export file',
+    });
+    if (result.canceled || result.filePaths.length === 0) {
+      return { ok: false, canceled: true };
+    }
+    return { ok: true, filePath: result.filePaths[0] };
+  } catch (e) {
+    log.error('Conversation import selectFile failed:', e.message);
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:import:conversations:validate', (event, { filePath }) => {
+  try {
+    const result = importParser.validateFile(filePath);
+    return { ok: result.ok, ...result };
+  } catch (e) {
+    log.error('Conversation import validate failed:', e.message);
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:import:conversations:start', (event, { filePath }) => {
+  try {
+    // Parse the file
+    const parsed = importParser.parseFile(filePath);
+    if (parsed.conversations.length === 0) {
+      return { ok: false, error: 'No conversations found in file', parseErrors: parsed.errors };
+    }
+
+    // Create import batch
+    const stat = fs.statSync(filePath);
+    const batchId = database.importBatches.create({
+      source: parsed.conversations[0].source,
+      fileName: path.basename(filePath),
+      fileSize: stat.size,
+      totalConversations: parsed.conversations.length,
+      status: 'pending',
+    });
+
+    // Start async import
+    importWorker.startImport({
+      conversations: parsed.conversations,
+      batchId,
+      database,
+      embeddings,
+      onProgress: (progress) => {
+        send('guardian:import:conversations:progress', progress);
+      },
+      onComplete: ({ batchId: bid, stats }) => {
+        log.info('Conversation import complete:', bid, stats);
+        send('guardian:import:conversations:progress', {
+          phase: 'complete', current: stats.imported + stats.skipped, total: parsed.conversations.length, batchId: bid, percent: 100,
+        });
+      },
+      onError: ({ batchId: bid, error }) => {
+        log.error('Conversation import failed:', bid, error);
+      },
+    });
+
+    return { ok: true, batchId, totalConversations: parsed.conversations.length, parseErrors: parsed.errors };
+  } catch (e) {
+    log.error('Conversation import start failed:', e.message);
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:import:conversations:cancel', (event, { batchId }) => {
+  try {
+    const cancelled = importWorker.cancelImport(batchId);
+    return { ok: true, cancelled };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:import:conversations:status', (event, { batchId }) => {
+  try {
+    // Check in-memory state first (active import)
+    const liveStatus = importWorker.getImportStatus(batchId);
+    if (liveStatus) {
+      return { ok: true, ...liveStatus };
+    }
+    // Fall back to DB record
+    const batch = database.importBatches.get(batchId);
+    if (!batch) return { ok: false, error: 'Batch not found' };
+    return {
+      ok: true,
+      status: batch.status,
+      progress: {
+        phase: batch.status === 'complete' ? 'complete' : batch.status,
+        current: batch.imported_conversations || 0,
+        total: batch.total_conversations || 0,
+        percent: batch.status === 'complete' ? 100 : 0,
+      },
+      stats: {
+        imported: batch.imported_conversations || 0,
+        skipped: batch.skipped_conversations || 0,
+        errors: 0,
+      },
+    };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:import:conversations:batches', () => {
+  try {
+    const batches = database.importBatches.list();
+    return { ok: true, batches };
+  } catch (e) {
+    log.error('Conversation import batches list failed:', e.message);
+    return { ok: false, error: e.message, batches: [] };
+  }
+});
+
 ipcMain.handle('guardian:import:backup', async () => {
   try {
     const result = await dialog.showOpenDialog(mainWindow, {
@@ -1779,7 +2012,7 @@ ipcMain.handle('guardian:update:check', () => {
 });
 
 ipcMain.handle('guardian:update:install', () => {
-  autoUpdater.quitAndInstall(false, true);
+  if (autoUpdater) autoUpdater.quitAndInstall(false, true);
   return { ok: true };
 });
 
@@ -1952,6 +2185,89 @@ ipcMain.handle('guardian:compression:run', (event, { level }) => {
   }
 });
 
+// ── Perlocutionary Audit (Reframe Detection) ────────────────────
+
+ipcMain.handle('guardian:reframe:list', (event, filters) => {
+  try {
+    const events = database.reframe.list(filters || {});
+    return { ok: true, events };
+  } catch (e) {
+    log.error('Reframe list failed:', e.message);
+    return { ok: false, error: e.message, events: [] };
+  }
+});
+
+ipcMain.handle('guardian:reframe:rate', (event, { id, accurate }) => {
+  try {
+    database.reframe.rate(id, accurate);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:reframe:acknowledge', (event, { id }) => {
+  try {
+    database.reframe.acknowledge(id);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:reframe:acknowledgeAll', () => {
+  try {
+    database.reframe.acknowledgeAll();
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:reframe:stats', () => {
+  try {
+    const stats = database.reframe.stats();
+    return { ok: true, ...stats };
+  } catch (e) {
+    log.error('Reframe stats failed:', e.message);
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:reframe:drift', (event, { days }) => {
+  try {
+    const score = database.reframe.getDriftScore(days || 30);
+    return { ok: true, score };
+  } catch (e) {
+    log.error('Reframe drift failed:', e.message);
+    return { ok: false, error: e.message, score: null };
+  }
+});
+
+// ── Identity Dimensions ─────────────────────────────────────────
+
+ipcMain.handle('guardian:dimensions:scores', (event, { days }) => {
+  try {
+    const identityDimensions = require('./lib/identity-dimensions');
+    const result = identityDimensions.computeDimensionScores(database, days || 30);
+    return { ok: true, ...result };
+  } catch (e) {
+    log.error('Dimension scores failed:', e.message);
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:dimensions:timeline', (event, { weeks }) => {
+  try {
+    const identityDimensions = require('./lib/identity-dimensions');
+    const result = identityDimensions.computeDimensionTimeline(database, weeks || 12);
+    return { ok: true, timeline: result };
+  } catch (e) {
+    log.error('Dimension timeline failed:', e.message);
+    return { ok: false, error: e.message, timeline: [] };
+  }
+});
+
 // ── Multi-Provider Management ────────────────────────────────────
 
 ipcMain.handle('guardian:providers:list', () => {
@@ -2116,6 +2432,7 @@ app.whenReady().then(() => {
   embeddings.init(database);
   metrics.init(database);
   secureStore.init();
+  forgeframe.loadProviderModels(database.db());
   perf.mark('databases:ready');
   log.info('Databases ready');
 
@@ -2147,7 +2464,7 @@ app.whenReady().then(() => {
   setupAutoUpdater();
   if (app.isPackaged) {
     setTimeout(() => {
-      autoUpdater.checkForUpdates().catch((err) => {
+      autoUpdater && autoUpdater.checkForUpdates().catch((err) => {
         log.warn('Auto-update check failed:', err.message);
       });
     }, 5000);

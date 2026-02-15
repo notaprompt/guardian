@@ -491,12 +491,27 @@ function getRelevantContext(db, message, opts = {}) {
 
   if (notes.length === 0) {
     // Even without matching notes, try compression memory
+    let memoryContext = '';
     try {
       const compressionPipeline = require('./compression');
-      const memoryContext = compressionPipeline.autoResolve(db, message);
-      if (memoryContext) return memoryContext;
+      memoryContext = compressionPipeline.autoResolve(db, message) || '';
     } catch (_) {}
-    return '';
+
+    // Inject drift-aware context if reframe accuracy is low
+    try {
+      const driftScore = db.reframe.getDriftScore(30);
+      if (driftScore !== null && driftScore < 0.6) {
+        const pct = Math.round((1 - driftScore) * 100);
+        const driftLines = [];
+        driftLines.push('');
+        driftLines.push('[guardian-drift-note]');
+        driftLines.push(`The user has flagged ${pct}% of recent reframes as inaccurate. Prioritize reflecting the user's own language and framing. Avoid contrast framing and emotional relabeling unless the user explicitly asks for reframing.`);
+        driftLines.push('[/guardian-drift-note]');
+        memoryContext = (memoryContext ? memoryContext + '\n' : '') + driftLines.join('\n');
+      }
+    } catch (_) { /* reframe module may not be ready */ }
+
+    return memoryContext || '';
   }
 
   // Format as context block
@@ -515,6 +530,18 @@ function getRelevantContext(db, message, opts = {}) {
       lines.push(memoryContext);
     }
   } catch (_) { /* compression module may not be ready */ }
+
+  // Inject drift-aware context if reframe accuracy is low
+  try {
+    const driftScore = db.reframe.getDriftScore(30);
+    if (driftScore !== null && driftScore < 0.6) {
+      const pct = Math.round((1 - driftScore) * 100);
+      lines.push('');
+      lines.push('[guardian-drift-note]');
+      lines.push(`The user has flagged ${pct}% of recent reframes as inaccurate. Prioritize reflecting the user's own language and framing. Avoid contrast framing and emotional relabeling unless the user explicitly asks for reframing.`);
+      lines.push('[/guardian-drift-note]');
+    }
+  } catch (_) { /* reframe module may not be ready */ }
 
   return lines.join('\n');
 }
@@ -551,6 +578,15 @@ function runPipeline({ sessionId, messages, db, onComplete, onError }) {
 
         // Step 4: link to knowledge graph
         const { entitiesLinked } = linkToGraph(db, sessionId, noteIds, artifactIds);
+
+        // Step 5: detect reframes (async, fire-and-forget — don't block pipeline)
+        try {
+          const reframeDetector = require('./reframe-detector');
+          reframeDetector.detectReframes(messages, db, sessionId, {
+            onComplete: (count) => log.info('Reframe detection: found', count, 'events for session', sessionId),
+            onError: (err) => log.warn('Reframe detection failed for', sessionId, ':', err.message),
+          });
+        } catch (e) { log.warn('Reframe detector not available:', e.message); }
 
         // Mark session extraction as complete
         try {

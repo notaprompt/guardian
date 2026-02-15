@@ -28,7 +28,7 @@ export default class ErrorBoundary extends React.Component {
         <div className="error-boundary">
           <div className="error-boundary__icon">&#x26A0;</div>
           <div className="error-boundary__title">
-            {this.props.name || 'Panel'} crashed
+            {this.props.name || 'Panel'} unavailable
           </div>
           <div className="error-boundary__msg">
             {this.state.error?.message || 'Unknown error'}

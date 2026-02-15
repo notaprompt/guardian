@@ -32,9 +32,9 @@ export default function AwarenessAlert() {
       <div className="awareness-alert__icon" aria-hidden="true">&#9672;</div>
       <div className="awareness-alert__body">
         <p className="awareness-alert__message">
-          guardian noticed this topic ({topic}) has appeared in {sessionCount} sessions
-          over {spanText} without resolution. would you like to promote it to an
-          integration queue item, or explore what's blocking action?
+          This topic ({topic}) has appeared in {sessionCount} sessions
+          over {spanText} without resolution. You can promote it to your
+          integration queue or explore what's blocking action.
         </p>
         <div className="awareness-alert__actions">
           <button

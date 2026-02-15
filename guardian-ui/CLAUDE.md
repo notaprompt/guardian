@@ -1,8 +1,8 @@
 # Guardian UI — Mission Control Interface
 
 ## What This Is
-Electron + React desktop app that wraps Claude Code CLI into a multi-panel mission control interface.
-Panels: Chat, Terminal (real PTY), Notes/Docs, Search/Memory. All resizable via drag handles.
+Electron + React desktop app — neuroprotective cognitive infrastructure built on TRIM.
+Four integrated panels: Chat, Terminal (real PTY), Notes/Docs, Search/Memory. All resizable via drag handles.
 
 ## Architecture
 - **Electron main process** (`main.js`): Window management, PTY spawning via node-pty, IPC handlers

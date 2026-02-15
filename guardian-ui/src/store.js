@@ -592,6 +592,7 @@ const useStore = create((set, get) => ({
         set({
           selectedModel: result.modelId || 'claude-sonnet-4-5-20250929',
           autoRoute: result.autoRoute !== false,
+          ...(result.models?.length > 0 ? { models: result.models } : {}),
         });
       }
     } catch (e) {
@@ -835,6 +836,149 @@ const useStore = create((set, get) => ({
 
   trackFeature: (feature) => {
     window.guardian?.metrics?.track(feature).catch(() => {});
+  },
+
+  // ── Conversation Import ──────────────────────────────────
+  importBatches: [],
+  fetchImportBatches: async () => {
+    try {
+      const result = await window.guardian?.import?.conversations?.batches();
+      if (result?.ok) set({ importBatches: result.batches || [] });
+    } catch (e) {
+      console.error('[store] fetchImportBatches failed:', e);
+    }
+  },
+
+  // SearchPanel tab (lifted to store for cross-component navigation)
+  searchPanelTab: 'queue',
+  setSearchPanelTab: (tab) => set({ searchPanelTab: tab }),
+
+  // ── Perlocutionary Audit (Reframe Detection) ──────────────
+  reframeEvents: [],
+  reframeStats: null,
+  driftScore: null,
+  reframeUnacknowledged: 0,
+  reframeFilter: { type: null, dimension: null, rated: null },
+
+  fetchReframeEvents: async () => {
+    try {
+      const { reframeFilter } = get();
+      const filters = {};
+      if (reframeFilter.type) filters.type = reframeFilter.type;
+      if (reframeFilter.dimension) filters.dimension = reframeFilter.dimension;
+      if (reframeFilter.rated === 'rated') filters.acknowledged = 1;
+      if (reframeFilter.rated === 'unrated') filters.acknowledged = 0;
+      filters.limit = 100;
+      const events = await window.guardian?.reframe?.list(filters);
+      if (Array.isArray(events)) {
+        set({ reframeEvents: events });
+      }
+    } catch (e) {
+      console.error('[store] fetchReframeEvents failed:', e);
+    }
+  },
+
+  fetchReframeStats: async () => {
+    try {
+      const stats = await window.guardian?.reframe?.stats();
+      if (stats) {
+        set({ reframeStats: stats, reframeUnacknowledged: stats.unacknowledged || 0 });
+      }
+    } catch (e) {
+      console.error('[store] fetchReframeStats failed:', e);
+    }
+  },
+
+  fetchDriftScore: async () => {
+    try {
+      const result = await window.guardian?.reframe?.drift(30);
+      if (result) {
+        set({ driftScore: result.score });
+      }
+    } catch (e) {
+      console.error('[store] fetchDriftScore failed:', e);
+    }
+  },
+
+  rateReframe: async (id, accurate) => {
+    try {
+      await window.guardian?.reframe?.rate(id, accurate);
+      // Update local state immediately
+      set((state) => ({
+        reframeEvents: state.reframeEvents.map((e) =>
+          e.id === id ? { ...e, accurate, acknowledged: 1 } : e
+        ),
+      }));
+      // Refresh stats and drift score
+      get().fetchReframeStats();
+      get().fetchDriftScore();
+    } catch (e) {
+      console.error('[store] rateReframe failed:', e);
+    }
+  },
+
+  acknowledgeReframe: async (id) => {
+    try {
+      await window.guardian?.reframe?.acknowledge(id);
+      set((state) => ({
+        reframeEvents: state.reframeEvents.map((e) =>
+          e.id === id ? { ...e, acknowledged: 1 } : e
+        ),
+        reframeUnacknowledged: Math.max(0, state.reframeUnacknowledged - 1),
+      }));
+    } catch (e) {
+      console.error('[store] acknowledgeReframe failed:', e);
+    }
+  },
+
+  setReframeFilter: (filter) => {
+    set((state) => ({
+      reframeFilter: { ...state.reframeFilter, ...filter },
+    }));
+    // Re-fetch with new filter
+    setTimeout(() => get().fetchReframeEvents(), 0);
+  },
+
+  // ── Identity Dimensions ──────────────────────────────────
+  dimensionScores: null,
+  dimensionTimeline: null,
+  dimensionLastComputed: null,
+  selectedDimension: null,
+  dimensionTimeWindow: 30,
+
+  fetchDimensionScores: async () => {
+    const { dimensionTimeWindow, dimensionLastComputed } = get();
+    // TTL: 10 minutes
+    if (dimensionLastComputed && Date.now() - dimensionLastComputed < 600000) return;
+    try {
+      const result = await window.guardian?.dimensions?.scores(dimensionTimeWindow);
+      if (result?.ok) {
+        set({
+          dimensionScores: result,
+          dimensionLastComputed: Date.now(),
+        });
+      }
+    } catch (e) {
+      console.error('[store] fetchDimensionScores failed:', e);
+    }
+  },
+
+  fetchDimensionTimeline: async () => {
+    try {
+      const result = await window.guardian?.dimensions?.timeline(12);
+      if (result?.ok) {
+        set({ dimensionTimeline: result.timeline });
+      }
+    } catch (e) {
+      console.error('[store] fetchDimensionTimeline failed:', e);
+    }
+  },
+
+  setSelectedDimension: (dim) => set({ selectedDimension: dim }),
+
+  setDimensionTimeWindow: (days) => {
+    set({ dimensionTimeWindow: days, dimensionLastComputed: null });
+    get().fetchDimensionScores();
   },
 
   // ── App Meta ────────────────────────────────────────────

@@ -1,0 +1,421 @@
+/* ── Import Wizard & Memory Explorer ─────────────────────── */
+
+/* Step indicator (4 dots) */
+.import-wizard__steps {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.import-wizard__step-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--white-15);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.import-wizard__step-dot--active {
+  background: var(--glow);
+  box-shadow: 0 0 6px var(--glow-dim);
+}
+
+.import-wizard__step-dot--complete {
+  background: var(--alive);
+}
+
+/* Drop zone */
+.import-drop-zone {
+  border: 1px dashed var(--white-15);
+  border-radius: 4px;
+  background: var(--depth-3);
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  margin-bottom: 16px;
+}
+
+.import-drop-zone:hover {
+  border-color: var(--white-30);
+  background: var(--depth-4);
+}
+
+.import-drop-zone--active {
+  border-color: var(--glow);
+  background: var(--depth-4);
+  box-shadow: 0 0 16px var(--glow-dim), inset 0 0 12px var(--glow-trace);
+}
+
+.import-drop-zone__icon {
+  font-size: 24px;
+  color: var(--white-30);
+  margin-bottom: 8px;
+}
+
+.import-drop-zone--active .import-drop-zone__icon {
+  color: var(--glow);
+}
+
+.import-drop-zone__text {
+  color: var(--white-45);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.import-drop-zone__hint {
+  color: var(--white-20);
+  font-size: 10px;
+  font-family: var(--mono);
+}
+
+.import-drop-zone__browse {
+  background: transparent;
+  border: 1px solid var(--white-15);
+  color: var(--white-70);
+  padding: 6px 16px;
+  border-radius: 3px;
+  font-family: var(--display);
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  margin-bottom: 8px;
+}
+
+.import-drop-zone__browse:hover {
+  border-color: var(--glow);
+  color: var(--glow);
+}
+
+/* Source badges */
+.import-source-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-family: var(--mono);
+  padding: 1px 6px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
+.import-source-badge--chatgpt {
+  background: rgba(16, 163, 127, 0.12);
+  color: #6bc9a8;
+}
+
+.import-source-badge--claude_export {
+  background: rgba(204, 136, 68, 0.12);
+  color: #c8a06a;
+}
+
+.import-source-badge--guardian {
+  background: var(--glow-dim);
+  color: var(--glow);
+}
+
+/* Preview card */
+.import-preview-card {
+  background: var(--depth-3);
+  border: 1px solid var(--white-08);
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.import-preview-card__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--white-04);
+}
+
+.import-preview-card__row:last-child {
+  border-bottom: none;
+}
+
+.import-preview-card__label {
+  color: var(--white-45);
+  font-size: 11px;
+}
+
+.import-preview-card__value {
+  color: var(--white-90);
+  font-size: 11px;
+  font-family: var(--mono);
+}
+
+/* Progress bar */
+.import-progress {
+  margin: 20px 0;
+}
+
+.import-progress__phase {
+  color: var(--white-60);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.import-progress__bar-track {
+  width: 100%;
+  height: 4px;
+  background: var(--depth-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.import-progress__bar-fill {
+  height: 100%;
+  background: var(--glow);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 8px var(--glow-dim);
+}
+
+.import-progress__stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--white-45);
+  font-size: 10px;
+  font-family: var(--mono);
+}
+
+/* Complete step */
+.import-complete {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.import-complete__glyph {
+  font-size: 32px;
+  color: var(--alive);
+  margin-bottom: 12px;
+}
+
+.import-complete__stats {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.import-complete__stat {
+  text-align: center;
+}
+
+.import-complete__stat-value {
+  font-size: 20px;
+  font-family: var(--mono);
+  color: var(--white-90);
+}
+
+.import-complete__stat-value--danger {
+  color: var(--danger);
+}
+
+.import-complete__stat-label {
+  font-size: 10px;
+  color: var(--white-45);
+  margin-top: 2px;
+}
+
+/* Action buttons */
+.import-wizard__confirm {
+  background: transparent;
+  border: 1px solid var(--glow);
+  color: var(--glow);
+  padding: 8px 24px;
+  border-radius: 3px;
+  font-family: var(--display);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.import-wizard__confirm:hover {
+  background: rgba(232, 220, 200, 0.06);
+  box-shadow: 0 0 12px var(--glow-dim);
+}
+
+.import-wizard__confirm:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.import-wizard__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.import-wizard__cancel {
+  background: transparent;
+  border: 1px solid var(--white-15);
+  color: var(--white-45);
+  padding: 8px 20px;
+  border-radius: 3px;
+  font-family: var(--display);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.import-wizard__cancel:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* Error box */
+.import-wizard__error {
+  background: rgba(199, 80, 80, 0.08);
+  border: 1px solid rgba(199, 80, 80, 0.2);
+  border-radius: 4px;
+  padding: 10px 14px;
+  color: var(--danger);
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+/* Batch history (below drop zone) */
+.import-batch-history {
+  margin-top: 16px;
+}
+
+.import-batch-history__title {
+  color: var(--white-30);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.import-batch-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--white-04);
+  font-size: 11px;
+}
+
+.import-batch-item__status {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.import-batch-item__status--complete {
+  background: var(--alive);
+}
+
+.import-batch-item__status--failed {
+  background: var(--danger);
+}
+
+.import-batch-item__status--pending,
+.import-batch-item__status--processing {
+  background: var(--glow);
+}
+
+.import-batch-item__name {
+  color: var(--white-70);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-batch-item__count {
+  color: var(--white-45);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.import-batch-item__date {
+  color: var(--white-30);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+/* ── Memory Explorer ────────────────────────────────────── */
+
+.memory-explorer {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.memory-explorer__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.memory-explorer__view-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.memory-explorer__view-btn {
+  background: transparent;
+  border: 1px solid var(--white-08);
+  color: var(--white-45);
+  padding: 3px 10px;
+  border-radius: 2px;
+  font-family: var(--display);
+  font-size: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.memory-explorer__view-btn--active {
+  border-color: var(--glow);
+  color: var(--glow);
+}
+
+.memory-explorer__filters {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.memory-explorer__filter {
+  background: transparent;
+  border: 1px solid var(--white-08);
+  color: var(--white-30);
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 9px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.memory-explorer__filter--active {
+  border-color: var(--white-30);
+  color: var(--white-70);
+}
+
+.memory-explorer__list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Conversation card extras */
+.memory-card__meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--white-30);
+  font-family: var(--mono);
+}

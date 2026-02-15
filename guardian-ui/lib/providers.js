@@ -502,16 +502,19 @@ class AnthropicAPIProvider {
 // ══════════════════════════════════════════════════════════════════
 
 class OpenAIProvider {
-  constructor({ apiKey, baseUrl } = {}) {
+  constructor({ apiKey, baseUrl, name, keyName, noAuth } = {}) {
     this._apiKey = apiKey || null;
     this._baseUrl = (baseUrl || 'https://api.openai.com').replace(/\/$/, '');
-    this._keyName = 'openai';
+    this._keyName = keyName || 'openai';
+    this._name = name || 'OpenAI';
+    this._noAuth = noAuth || false;
   }
 
-  get name() { return 'OpenAI'; }
+  get name() { return this._name; }
   get type() { return 'openai'; }
 
   isAvailable() {
+    if (this._noAuth) return true;
     const key = this._apiKey || secureStore.getKey(this._keyName);
     return !!key;
   }
@@ -533,7 +536,7 @@ class OpenAIProvider {
     const emitter = new EventEmitter();
     const apiKey = this._apiKey || secureStore.getKey(this._keyName);
 
-    if (!apiKey) {
+    if (!apiKey && !this._noAuth) {
       process.nextTick(() => {
         emitter.emit('error', { type: 'error', error: `${this.name} API key not configured` });
       });
@@ -554,13 +557,13 @@ class OpenAIProvider {
       stream,
     };
 
-    if (stream) {
+    if (stream && !this._noAuth) {
       body.stream_options = { include_usage: true };
     }
 
     const url = `${this._baseUrl}/v1/chat/completions`;
 
-    this._doFetch(url, apiKey, body, stream, emitter);
+    this._doFetch(url, apiKey || '', body, stream, emitter);
 
     return emitter;
   }
@@ -597,12 +600,13 @@ class OpenAIProvider {
     };
 
     try {
+      const headers = { 'content-type': 'application/json' };
+      if (apiKey) {
+        headers['authorization'] = `Bearer ${apiKey}`;
+      }
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'authorization': `Bearer ${apiKey}`,
-        },
+        headers,
         body: JSON.stringify(body),
         signal: controller.signal,
       });
