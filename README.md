@@ -68,7 +68,7 @@ It's infrastructure. The kind you don't notice until it's gone.
 
 ## Current state
 
-In development. Local-first architecture. Python backend. Electron frontend. FAISS semantic memory. Multi-LLM routing.
+In development. Local-first architecture. Electron + Node.js backend. React frontend. SQLite/FTS5 memory. Multi-LLM routing.
 
 Built for regulated environments where privacy isn't optional. Designed for humans who think recursively.
 
@@ -97,10 +97,13 @@ If you're building on Guardian or curious about the architecture:
 - Privacy-preserving (designed for regulated environments)
 
 **Stack:**
-- Backend: Python + FastAPI
-- Frontend: Electron + React
-- Memory: FAISS vector storage + SQLite metadata
-- LLMs: Multi-provider (Claude, GPT, Gemini, local models)
+- Runtime: Electron 33 + Node.js
+- Frontend: React 18 + Vite
+- State: Zustand
+- Database: SQLite + FTS5 full-text search
+- Terminal: xterm.js + node-pty (real PTY)
+- LLMs: Multi-provider (Claude, OpenAI, Ollama local, Fireworks, Moonshot)
+- Routing: ForgeFrame — intent-based model selection by complexity and cost
 
 **Patterns:**
 - Session isolation (folder-based knowledge separation)
