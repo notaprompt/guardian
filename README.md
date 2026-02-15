@@ -2,6 +2,10 @@
 
 **A cognitive operating system for people who think in layers.**
 
+24,000+ lines. 20 backend modules. Four integrated workspace panels. Intent-based model routing across local and cloud providers. Runs fully air-gapped or scales through APIs.
+
+<!-- ![Guardian](docs/screenshot.png) -->
+
 ---
 
 ## What it is
@@ -66,11 +70,23 @@ It's infrastructure. The kind you don't notice until it's gone.
 
 ---
 
+## Systems
+
+**ForgeFrame** -- Intent-based model routing engine. Analyzes query complexity and dispatches across frontier, open-source, and local LLM providers. Matches lightweight models to simple tasks, reserves premium tiers for complex reasoning.
+
+**Hierarchical memory** -- Multi-stage compression pipeline with strength decay and retrieval reinforcement. Long-running dialogue distills into persistent knowledge that retrieves in milliseconds.
+
+**Knowledge graph** -- Post-conversation pipeline extracts entities and relationships with semantic indexing. Unstructured dialogue becomes a searchable graph automatically.
+
+**Quality assurance** -- Classifies AI responses to detect unintended reframing of user intent. Triggers corrections in real time when accuracy degrades past threshold.
+
+**Awareness detection** -- Identifies recurring unresolved topics across sessions. Flags patterns you keep circling back to but haven't resolved.
+
+---
+
 ## Current state
 
-In development. Local-first architecture. Electron + Node.js backend. React frontend. SQLite/FTS5 memory. Multi-LLM routing.
-
-Built for regulated environments where privacy isn't optional. Designed for humans who think recursively.
+In active development. Used daily by its creator. Built for regulated environments where privacy isn't optional.
 
 Early. Rough. Real.
 
@@ -97,21 +113,26 @@ If you're building on Guardian or curious about the architecture:
 - Privacy-preserving (designed for regulated environments)
 
 **Stack:**
-- Runtime: Electron 33 + Node.js
-- Frontend: React 18 + Vite
-- State: Zustand
-- Database: SQLite + FTS5 full-text search
-- Terminal: xterm.js + node-pty (real PTY)
-- LLMs: Multi-provider (Claude, OpenAI, Ollama local, Fireworks, Moonshot)
-- Routing: ForgeFrame — intent-based model selection by complexity and cost
 
-**Patterns:**
-- Session isolation (folder-based knowledge separation)
-- Recursive cognition (AI that reflects on its own outputs)
-- Integration queue (conflict resolution through user choice)
-- Heartbeat function (context refresh without window overflow)
+| Layer | Technology |
+|-------|-----------|
+| Runtime | Electron 33 + Node.js |
+| Frontend | React 18 + Vite |
+| State | Zustand |
+| Database | SQLite + FTS5 full-text search |
+| Terminal | xterm.js + node-pty (real PTY, not emulated) |
+| LLM providers | Claude, OpenAI, Ollama (local), Fireworks, Moonshot |
+| Model routing | ForgeFrame -- intent-based selection by complexity tier |
+| Visualization | d3-force knowledge graph, Canvas rendering |
 
-More documentation coming. Code speaks louder than docs anyway.
+**Getting started:**
+
+```bash
+cd guardian-ui
+npm install
+npx @electron/rebuild -f -w node-pty
+npm start
+```
 
 ---
 
@@ -127,18 +148,4 @@ It's for people who think for a living and are tired of starting from scratch ev
 
 ---
 
-## Contact
-
-Building something similar? Have questions? Want to contribute?
-
-Reach out. This is early enough that the architecture is still fluid.
-
-Built by people who got tired of forgetting what they already knew.
-
----
-
 **Guardian. Memory that doesn't fade. Context that doesn't drop. Thinking that compounds.**
-
----
-
-*Status: In development. Not production-ready. Use at your own risk. But also: it might change how you think.*
