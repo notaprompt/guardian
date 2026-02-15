@@ -9,6 +9,9 @@ Thumbs.db
 # Electron
 out/
 
+# Debug dump files
+asar*
+
 # Local Claude Code config (personal, don't commit)
 .claude/settings.local.json
 CLAUDE.local.md
