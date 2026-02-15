@@ -1,67 +1,68 @@
+"use strict";
 /**
  * Guardian — Path Constants & Directory Initialization
  *
  * All persistent data lives under ~/.guardian/
  * This module defines the directory structure and ensures it exists.
  */
-
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
-
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FILES = exports.DIRS = exports.GUARDIAN_HOME = void 0;
+exports.initDirectories = initDirectories;
+exports.readJSON = readJSON;
+exports.writeJSON = writeJSON;
+const path_1 = __importDefault(require("path"));
+const os_1 = __importDefault(require("os"));
+const fs_1 = __importDefault(require("fs"));
 // ── Root ──────────────────────────────────────────────────────
-const GUARDIAN_HOME = path.join(os.homedir(), '.guardian');
-
+exports.GUARDIAN_HOME = path_1.default.join(os_1.default.homedir(), '.guardian');
 // ── Directory Structure ──────────────────────────────────────
-const DIRS = {
-  root:               GUARDIAN_HOME,
-  config:             path.join(GUARDIAN_HOME, 'config'),
-  data:               path.join(GUARDIAN_HOME, 'data'),
-  notes:              path.join(GUARDIAN_HOME, 'notes'),
-  notesStratch:       path.join(GUARDIAN_HOME, 'notes', 'scratch'),
-  notesStructured:    path.join(GUARDIAN_HOME, 'notes', 'structured'),
-  notesJournal:       path.join(GUARDIAN_HOME, 'notes', 'journal'),
-  artifacts:          path.join(GUARDIAN_HOME, 'artifacts'),
-  artifactsCode:      path.join(GUARDIAN_HOME, 'artifacts', 'code'),
-  artifactsDocs:      path.join(GUARDIAN_HOME, 'artifacts', 'docs'),
-  artifactsMedia:     path.join(GUARDIAN_HOME, 'artifacts', 'media'),
-  backups:            path.join(GUARDIAN_HOME, 'backups'),
-  logs:               path.join(GUARDIAN_HOME, 'logs'),
+exports.DIRS = {
+    root: exports.GUARDIAN_HOME,
+    config: path_1.default.join(exports.GUARDIAN_HOME, 'config'),
+    data: path_1.default.join(exports.GUARDIAN_HOME, 'data'),
+    notes: path_1.default.join(exports.GUARDIAN_HOME, 'notes'),
+    notesStratch: path_1.default.join(exports.GUARDIAN_HOME, 'notes', 'scratch'),
+    notesStructured: path_1.default.join(exports.GUARDIAN_HOME, 'notes', 'structured'),
+    notesJournal: path_1.default.join(exports.GUARDIAN_HOME, 'notes', 'journal'),
+    artifacts: path_1.default.join(exports.GUARDIAN_HOME, 'artifacts'),
+    artifactsCode: path_1.default.join(exports.GUARDIAN_HOME, 'artifacts', 'code'),
+    artifactsDocs: path_1.default.join(exports.GUARDIAN_HOME, 'artifacts', 'docs'),
+    artifactsMedia: path_1.default.join(exports.GUARDIAN_HOME, 'artifacts', 'media'),
+    backups: path_1.default.join(exports.GUARDIAN_HOME, 'backups'),
+    logs: path_1.default.join(exports.GUARDIAN_HOME, 'logs'),
 };
-
 // ── File Paths ───────────────────────────────────────────────
-const FILES = {
-  database:           path.join(DIRS.data, 'guardian.db'),
-  settings:           path.join(DIRS.config, 'settings.json'),
-  layout:             path.join(DIRS.config, 'layout.json'),
-  profile:            path.join(DIRS.config, 'profile.json'),
-  keybindings:        path.join(DIRS.config, 'keybindings.json'),
-  log:                path.join(DIRS.logs, 'guardian.log'),
+exports.FILES = {
+    database: path_1.default.join(exports.DIRS.data, 'guardian.db'),
+    settings: path_1.default.join(exports.DIRS.config, 'settings.json'),
+    layout: path_1.default.join(exports.DIRS.config, 'layout.json'),
+    profile: path_1.default.join(exports.DIRS.config, 'profile.json'),
+    keybindings: path_1.default.join(exports.DIRS.config, 'keybindings.json'),
+    log: path_1.default.join(exports.DIRS.logs, 'guardian.log'),
 };
-
 // ── Initialize ───────────────────────────────────────────────
 // Creates all directories if they don't exist.
 // Safe to call multiple times.
 function initDirectories() {
-  for (const dir of Object.values(DIRS)) {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+    for (const dir of Object.values(exports.DIRS)) {
+        if (!fs_1.default.existsSync(dir)) {
+            fs_1.default.mkdirSync(dir, { recursive: true });
+        }
     }
-  }
 }
-
 // ── Config Helpers ───────────────────────────────────────────
 function readJSON(filePath, fallback = {}) {
-  try {
-    if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    try {
+        if (fs_1.default.existsSync(filePath)) {
+            return JSON.parse(fs_1.default.readFileSync(filePath, 'utf-8'));
+        }
     }
-  } catch (_) { /* corrupt file — return fallback */ }
-  return fallback;
+    catch (_) { /* corrupt file — return fallback */ }
+    return fallback;
 }
-
 function writeJSON(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    fs_1.default.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
-
-module.exports = { GUARDIAN_HOME, DIRS, FILES, initDirectories, readJSON, writeJSON };
