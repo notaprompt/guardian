@@ -115,7 +115,7 @@ contextBridge.exposeInMainWorld('guardian', {
     append: (record) => ipcRenderer.invoke('guardian:usage:append', { record }),
   },
 
-  // ── Integration Queue (TRIM 7.2) ────────────────────────
+  // ── Integration Queue ────────────────────────
   queue: {
     list: (opts) => ipcRenderer.invoke('guardian:queue:list', opts),
     add: (item) => ipcRenderer.invoke('guardian:queue:add', item),
@@ -147,7 +147,7 @@ contextBridge.exposeInMainWorld('guardian', {
     },
   },
 
-  // ── Profile (TRIM architecture) ────────────────────────
+  // ── Profile ────────────────────────
   profile: {
     get: () => ipcRenderer.invoke('guardian:profile:get'),
     set: (profile) => ipcRenderer.invoke('guardian:profile:set', { profile }),
@@ -178,7 +178,7 @@ contextBridge.exposeInMainWorld('guardian', {
     },
   },
 
-  // ── Awareness-Trap Detection (TRIM 9.4) ────────────────
+  // ── Awareness-Trap Detection ────────────────
   awareness: {
     check: () => ipcRenderer.invoke('guardian:awareness:check'),
     dismiss: (topic) => ipcRenderer.invoke('guardian:awareness:dismiss', { topic }),
@@ -189,7 +189,7 @@ contextBridge.exposeInMainWorld('guardian', {
     },
   },
 
-  // ── Knowledge Graph (V.1.d) ──────────────────────────
+  // ── Knowledge Graph ──────────────────────────
   graph: {
     entities: (opts) => ipcRenderer.invoke('guardian:graph:entities', opts),
     relationships: (opts) => ipcRenderer.invoke('guardian:graph:relationships', opts),
@@ -267,7 +267,7 @@ contextBridge.exposeInMainWorld('guardian', {
     track: (feature) => ipcRenderer.invoke('guardian:metrics:track', { feature }),
   },
 
-  // ── Librarian (V.1.c Auto-Extraction) ─────────────────
+  // ── Librarian (Auto-Extraction) ─────────────────
   librarian: {
     onStatus: (callback) => {
       const handler = (_event, payload) => callback(payload);

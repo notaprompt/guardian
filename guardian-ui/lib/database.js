@@ -207,7 +207,7 @@ function _createSchema() {
     CREATE INDEX IF NOT EXISTS idx_reframe_acknowledged ON reframe_events(acknowledged);
   `);
 
-  // Knowledge graph tables (V.1.d)
+  // Knowledge graph tables
   try {
     const knowledgeGraph = require('./knowledge-graph');
     knowledgeGraph.createSchema(_db);

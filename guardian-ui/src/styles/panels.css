@@ -1407,7 +1407,7 @@
   color: var(--glow);
 }
 
-/* ── Onboarding (TRIM Self-Assessment) ───────────────────── */
+/* ── Onboarding ───────────────────── */
 
 .onboarding {
   position: absolute;
@@ -1521,7 +1521,7 @@
   color: var(--white-70);
 }
 
-/* ── Integration Queue (TRIM 7.2) ────────────────────────── */
+/* ── Integration Queue ────────────────────────── */
 
 .queue-input-row {
   padding: 8px 12px;
@@ -1782,7 +1782,7 @@
   50% { opacity: 0.4; }
 }
 
-/* ── Grounding Layer (TRIM — resolve with physical action) ─── */
+/* ── Grounding Layer ─── */
 
 .grounding-prompt {
   padding: 10px 12px;

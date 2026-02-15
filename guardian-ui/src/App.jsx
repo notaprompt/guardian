@@ -16,7 +16,7 @@ const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
 const Onboarding = lazy(() => import('./components/Onboarding'));
 
 /*
-  TRIM Navigation Instruments:
+  Navigation Instruments:
   - Warm orb: token burn rate (metabolic load proxy) → opacity/scale
   - Cool orb: session duration (engagement depth) → hue shift blue→amber
   - Glow orb: system state → pulse on thinking, brighten on responding, dim on error
@@ -401,7 +401,7 @@ export default function App() {
         </Allotment>
       </main>
 
-      {/* ── Bottom Bar — TRIM Telemetry Strip ────────── */}
+      {/* ── Bottom Bar — Telemetry Strip ────────── */}
       <footer className="bottom-bar" role="contentinfo" aria-label="Session telemetry">
         <div className="bottom-bar__left">
           <div className="bottom-bar__alive" aria-live="polite" aria-atomic="true">

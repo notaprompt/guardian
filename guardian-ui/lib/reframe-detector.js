@@ -5,7 +5,7 @@
  * or emotional state. Runs as part of the librarian pipeline after each
  * session. Uses Haiku for cost-efficient extraction.
  *
- * TRIM grounding: 9.4 (awareness trap) + Wright perlocutionary drift.
+ * Detects response drift patterns across identity dimensions.
  */
 
 const { spawn } = require('child_process');

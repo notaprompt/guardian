@@ -210,7 +210,7 @@ Chat errors are classified and displayed with appropriate context:
 
 ### Awareness-Trap Detection
 
-After each successful chat response, Guardian analyzes your conversation history for patterns that may indicate an awareness trap (TRIM 9.4):
+After each successful chat response, Guardian analyzes your conversation history for patterns that may indicate an awareness trap:
 - Repeated discussion of the same topic across 3+ sessions without resolution
 - High meta-language usage ("I keep...", "I notice I...", "same pattern")
 - Absence of action items

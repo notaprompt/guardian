@@ -1,15 +1,4 @@
-/**
- * Guardian — Hierarchical Compression Pipeline
- *
- * Four resolution levels:
- *   L0: raw transcript (exists in messages table)
- *   L1: session summary (created by summarizer, registered here)
- *   L2: patterns (cross-session themes, extracted by Haiku)
- *   L3: principles (distilled from patterns, extracted by Sonnet)
- *
- * Triggers: L1 auto after summarizer. L2 when 5+ L1s. L3 when 3+ L2s.
- * Decay: strength *= 0.97 daily. Retrieval reinforces (+0.15). Archive below 0.3.
- */
+// Hierarchical memory compression.
 
 const { spawn } = require('child_process');
 const path = require('path');

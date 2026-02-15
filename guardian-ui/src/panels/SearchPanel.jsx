@@ -106,7 +106,7 @@ function SearchPanelInner() {
         <button
           className={`zone-head__btn${tab === 'queue' ? ' zone-head__btn--active' : ''}`}
           onClick={() => setTab('queue')}
-          title="Integration queue (TRIM)"
+          title="Integration queue"
           role="tab"
           aria-selected={tab === 'queue'}
           aria-label="Integration queue"
@@ -169,7 +169,7 @@ function SearchPanelInner() {
         </button>
       </PanelHeader>
 
-      {/* ── Integration Queue (TRIM 7.2) ──────────── */}
+      {/* ── Integration Queue ──────────── */}
       {tab === 'queue' && (
         <div className="zone-body" style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           <div className="queue-input-row">
@@ -451,7 +451,7 @@ function SearchPanelInner() {
         </div>
       )}
 
-      {/* ── Knowledge Graph (V.1.d) ───────────────── */}
+      {/* ── Knowledge Graph ───────────────── */}
       {tab === 'graph' && (
         <div className="zone-body" style={{ overflow: 'hidden', flex: 1 }}>
           <Suspense

@@ -1,17 +1,4 @@
-/**
- * Guardian -- Semantic Embedding Pipeline
- *
- * Generates semantic summaries of conversation chunks via Claude CLI,
- * stores them in SQLite for FTS-powered semantic search.
- * Runs asynchronously after session ends -- never blocks the UI.
- * Gracefully degrades if summarization/embedding fails.
- *
- * Architecture:
- *   1. After a session ends, chunk the conversation into segments
- *   2. For each chunk, generate a semantic summary via Claude CLI
- *   3. Store chunk + summary in the embeddings table
- *   4. Semantic search queries the summaries via FTS5
- */
+// Semantic embedding pipeline for conversation search.
 
 const { spawn } = require('child_process');
 const path = require('path');

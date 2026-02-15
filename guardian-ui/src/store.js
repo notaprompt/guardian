@@ -359,7 +359,7 @@ const useStore = create((set, get) => ({
     }
   },
 
-  // ── TRIM Navigation Instruments ─────────────────────────
+  // ── Navigation Instruments ─────────────────────────
 
   // Telemetry (pushed from main process every 5s)
   telemetry: {
@@ -383,11 +383,11 @@ const useStore = create((set, get) => ({
   },
   setAmbientState: (s) => set({ ambientState: { ...get().ambientState, ...s } }),
 
-  // Integration Queue (TRIM 7.2 — open threads)
+  // Integration Queue
   queueItems: [],
   queueUnresolved: 0,
 
-  // Grounding layer (TRIM — tracks what changed in the world when resolving)
+  // Grounding layer
   groundingPrompt: null,   // queue item ID showing grounding prompt, null = none
   groundingStats: { groundingRate: 0, avgLatencyDays: 0 },
 
@@ -481,7 +481,7 @@ const useStore = create((set, get) => ({
     }
   },
 
-  // User Profile (TRIM architecture self-assessment)
+  // User Profile
   // null = not loaded yet, {} = loaded but empty (needs onboarding)
   profile: null,
 
@@ -658,7 +658,7 @@ const useStore = create((set, get) => ({
     window.guardian?.librarian?.onComplete((result) => set({ librarianStatus: { ...result, status: 'complete' } }));
   },
 
-  // ── Awareness-Trap Detection (TRIM 9.4) ─────────────────
+  // ── Awareness-Trap Detection ─────────────────
   // Detection result from main process, or null if no pattern detected
   awareness: null,   // { topic, sessionCount, spanText, confidence, ... }
 
@@ -693,7 +693,7 @@ const useStore = create((set, get) => ({
     set({ awareness: null });
   },
 
-  // ── Knowledge Graph (V.1.d) ──────────────────────────────
+  // ── Knowledge Graph ──────────────────────────────
   graphEntities: [],
   graphRelationships: [],
   graphLoading: false,

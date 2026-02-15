@@ -3,7 +3,7 @@ import useStore from '../store';
 import './AwarenessAlert.css';
 
 /**
- * AwarenessAlert — TRIM 9.4 awareness-trap notification
+ * AwarenessAlert — Awareness-trap notification
  *
  * Subtle amber banner at top of chat. Observational, never prescriptive.
  * "Guardian does NOT diagnose. It surfaces the pattern."

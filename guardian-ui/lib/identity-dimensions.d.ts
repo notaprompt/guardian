@@ -5,7 +5,7 @@
  * (reframe events, knowledge graph, compression memory, notes, queue).
  * Keyword-based classification for cost-free approximation.
  *
- * TRIM grounding: Section 9 identity coherence mapping.
+ * Identity coherence mapping across weighted dimensions.
  */
 type Dimension = 'emotional' | 'professional' | 'cognitive' | 'relational' | 'ambition' | 'worth' | 'somatic' | 'creative';
 type Trend = 'increasing' | 'decreasing' | 'stable';

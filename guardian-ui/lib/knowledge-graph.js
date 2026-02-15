@@ -3,7 +3,7 @@
  *
  * Entity extraction from conversation sessions via Claude CLI,
  * plus DB operations for entities and relationships.
- * Spec: V.1.d Knowledge Graph
+ * Persistent entity and relationship storage.
  */
 
 const { spawn } = require('child_process');

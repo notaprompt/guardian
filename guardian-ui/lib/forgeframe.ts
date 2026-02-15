@@ -8,9 +8,7 @@
  * Manual override via ModelPicker always takes precedence.
  * Persists selected model to ~/.guardian/config/settings.json
  *
- * TRIM grounding: different cognitive tasks have different optimal models.
- * Quick questions -> fast model (Haiku). Deep analysis -> capable model (Opus).
- * Code generation / balanced -> default model (Sonnet).
+ * Routes by cognitive task tier: quick, balanced, and deep.
  */
 
 import { readJSON, writeJSON, FILES } from './paths';

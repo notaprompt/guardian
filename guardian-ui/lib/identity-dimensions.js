@@ -6,7 +6,7 @@
  * (reframe events, knowledge graph, compression memory, notes, queue).
  * Keyword-based classification for cost-free approximation.
  *
- * TRIM grounding: Section 9 identity coherence mapping.
+ * Identity coherence mapping across weighted dimensions.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DIMENSION_KEYWORDS = void 0;

@@ -646,7 +646,7 @@ function DetectionSection({ config, updateConfig }) {
           <div className="settings-row__label">Awareness-Trap Detection</div>
           <div className="settings-row__desc">
             Monitor for recurring conversational patterns that may indicate an
-            awareness trap (TRIM 9.4). When detected, Guardian surfaces the
+            awareness trap. When detected, Guardian surfaces the
             pattern non-prescriptively. All analysis is local.
           </div>
         </div>
@@ -925,7 +925,7 @@ function AboutSection() {
       <div className="settings-about__version">v0.1.0</div>
       <div className="settings-about__desc">
         Neuroprotective cognitive infrastructure for high-coupling architectures.
-        Grounded in the Topological-Recursive Identity Model (TRIM).
+        Grounded in cognitive identity mapping research.
       </div>
       <div className="settings-about__credit">
         Built by A. Campos, 2026

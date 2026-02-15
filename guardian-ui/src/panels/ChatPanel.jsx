@@ -180,7 +180,7 @@ function ChatPanelInner() {
       setActiveSessionId(sessionId);
     });
 
-    // Listen for awareness-trap detections (TRIM 9.4)
+    // Listen for awareness-trap detections
     const unsubAwareness = window.guardian?.awareness?.onDetected((detection) => {
       if (detection) setAwareness(detection);
     });

@@ -352,7 +352,7 @@ ipcMain.handle('guardian:claude:launch', (event, { id, cols, rows, cwd }) => {
 });
 
 // ── Session Telemetry Engine ─────────────────────────────────────
-// Tracks real-time cognitive load proxies for TRIM navigation instruments
+// Tracks real-time cognitive load proxies for navigation instruments
 
 const telemetry = {
   sessionStart: null,
@@ -522,7 +522,7 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
   // Metrics: track chat message sent
   metrics.track.chatMessageSent();
 
-  // Build prompt with TRIM context injection
+  // Build prompt with context injection
   // Budget: ~2000 tokens of auto-injected context
   let prompt = message;
   let contextTokenEstimate = 0;
@@ -852,7 +852,7 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
     send('guardian:chat:done', { exitCode: code, sessionId: currentSessionId });
     log.info('Chat process exited:', code);
 
-    // ── Awareness-trap detection (TRIM 9.4) ──────────────────────
+    // ── Awareness-trap detection ──────────────────────
     // Run asynchronously after chat completes — never blocks the user
     if (currentSessionId && code === 0) {
       try {
@@ -946,7 +946,7 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
       }
     }
 
-    // ── Knowledge graph entity extraction (V.1.d) ────────────────
+    // ── Knowledge graph entity extraction ────────────────
     // Extract entities and relationships asynchronously — never blocks UI
     if (currentSessionId && code === 0) {
       const sessionIdToExtract = currentSessionId;
@@ -975,7 +975,7 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
       }
     }
 
-    // ── Librarian auto-extraction pipeline (V.1.c) ──────────────
+    // ── Librarian auto-extraction pipeline ──────────────
     // Extract insights, create notes, file artifacts — async, never blocks UI
     if (currentSessionId && code === 0) {
       const sessionIdToExtractLib = currentSessionId;
@@ -1242,7 +1242,7 @@ ipcMain.handle('guardian:usage:append', (event, { record }) => {
   }
 });
 
-// ── Integration Queue (TRIM 7.2) ────────────────────────────────
+// ── Integration Queue ────────────────────────────────
 
 ipcMain.handle('guardian:queue:list', (event, opts = {}) => {
   try {
@@ -1330,7 +1330,7 @@ ipcMain.handle('guardian:telemetry:session', () => {
   return { ok: true, ...telemetry.getState() };
 });
 
-// ── Awareness-Trap Detection (TRIM 9.4) ─────────────────────────
+// ── Awareness-Trap Detection ─────────────────────────
 
 ipcMain.handle('guardian:awareness:check', () => {
   try {
@@ -1353,7 +1353,7 @@ ipcMain.handle('guardian:awareness:dismiss', (event, { topic }) => {
   }
 });
 
-// ── Profile (TRIM architecture self-assessment) ─────────────────
+// ── Profile ─────────────────
 
 ipcMain.handle('guardian:profile:get', () => {
   try {
@@ -1395,7 +1395,7 @@ ipcMain.handle('guardian:search:semantic', (event, { query, limit }) => {
   }
 });
 
-// ── Knowledge Graph (V.1.d) ──────────────────────────────────────
+// ── Knowledge Graph ──────────────────────────────────────
 
 ipcMain.handle('guardian:graph:entities', (event, opts = {}) => {
   try {
@@ -2078,7 +2078,7 @@ ipcMain.handle('guardian:perf:logRenderer', (event, { name, data }) => {
   return { ok: true };
 });
 
-// ── Librarian (V.1.c Auto-Extraction) ────────────────────────────
+// ── Librarian (Auto-Extraction) ──────────────────────────────────
 
 ipcMain.handle('guardian:librarian:rerun', (event, { sessionId }) => {
   try {

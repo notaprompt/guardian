@@ -9,17 +9,28 @@ Thumbs.db
 # Electron
 out/
 
-# Debug dump files
+# Sensitive docs
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+docs/ARCHITECTURE.md
+
+# Runtime data
+*.sqlite
+*.db
+guardian-notes.json
+guardian-usage.json
+keys.enc
+
+# Secrets
+*.env
+*.env.*
+*.key
+*.pem
+*.p12
+
+# Debug artifacts
 asar*
 
-# Local Claude Code config (personal, don't commit)
-.claude/settings.local.json
-CLAUDE.local.md
-
-# Protected IP (stored locally at ~/Documents/guardian-private/)
-arch/TRIM_v5_full.txt
-arch/TRIM*.docx
-arch/TRIM*.pdf
-arch/GUARDIAN_PRODUCT_SPEC.md
-arch/BRAND_VOICE_GUIDE.md
-arch/MEMORY_IMPORT_SPEC.md
+# Protected IP
+arch/

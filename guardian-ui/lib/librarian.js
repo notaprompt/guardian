@@ -5,7 +5,7 @@
  * sessions, auto-creates notes, files code artifacts, and links everything
  * to the knowledge graph. Runs asynchronously -- never blocks the UI.
  *
- * Spec: V.1.c Librarian Pipeline
+ * Automated extraction and indexing pipeline.
  */
 
 const { spawn } = require('child_process');

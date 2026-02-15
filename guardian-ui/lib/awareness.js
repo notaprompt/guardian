@@ -1,5 +1,5 @@
 /**
- * Guardian — Awareness-Trap Detection (TRIM 9.4)
+ * Guardian — Awareness-Trap Detection
  *
  * "Each cycle of accurate observation without successful intervention
  *  generates additional prediction error."

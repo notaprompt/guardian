@@ -6,5 +6,26 @@ out/
 *.log
 .DS_Store
 Thumbs.db
-.claude/settings.local.json
+
+# Sensitive docs
+CLAUDE.md
 CLAUDE.local.md
+.claude/
+docs/ARCHITECTURE.md
+
+# Runtime data
+*.sqlite
+*.db
+guardian-notes.json
+guardian-usage.json
+keys.enc
+
+# Secrets
+*.env
+*.env.*
+*.key
+*.pem
+*.p12
+
+# Debug artifacts
+asar*
