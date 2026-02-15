@@ -186,6 +186,25 @@ function _createSchema() {
 
     -- FTS for compression memory
     CREATE VIRTUAL TABLE IF NOT EXISTS compression_fts USING fts5(content);
+
+    -- Reframe events (Perlocutionary Audit)
+    CREATE TABLE IF NOT EXISTS reframe_events (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL REFERENCES sessions(id),
+      message_id TEXT NOT NULL,
+      user_context TEXT NOT NULL,
+      reframe_text TEXT NOT NULL,
+      reframe_type TEXT NOT NULL,
+      confidence REAL DEFAULT 0.0,
+      identity_dimension TEXT,
+      acknowledged INTEGER DEFAULT 0,
+      accurate INTEGER DEFAULT -1,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_reframe_session ON reframe_events(session_id);
+    CREATE INDEX IF NOT EXISTS idx_reframe_type ON reframe_events(reframe_type);
+    CREATE INDEX IF NOT EXISTS idx_reframe_dimension ON reframe_events(identity_dimension);
+    CREATE INDEX IF NOT EXISTS idx_reframe_acknowledged ON reframe_events(acknowledged);
   `);
 
   // Knowledge graph tables (V.1.d)
@@ -272,6 +291,27 @@ function _createSchema() {
     log.warn('Librarian/providers schema init failed:', e.message);
   }
 
+  // Import batch tracking table
+  try {
+    _db.exec(`
+      CREATE TABLE IF NOT EXISTS import_batches (
+        id TEXT PRIMARY KEY,
+        source TEXT NOT NULL,
+        file_name TEXT,
+        file_size INTEGER,
+        status TEXT DEFAULT 'pending',
+        total_conversations INTEGER DEFAULT 0,
+        imported_conversations INTEGER DEFAULT 0,
+        skipped_conversations INTEGER DEFAULT 0,
+        error_message TEXT,
+        started_at TEXT NOT NULL,
+        completed_at TEXT
+      );
+    `);
+  } catch (e) {
+    log.warn('Import batches table init failed:', e.message);
+  }
+
   // ALTER TABLE migrations (idempotent — catch duplicate column errors)
   try { _db.exec('ALTER TABLE notes ADD COLUMN auto_generated INTEGER DEFAULT 0'); } catch (_) {}
   try { _db.exec('ALTER TABLE notes ADD COLUMN source_session_id TEXT'); } catch (_) {}
@@ -280,6 +320,12 @@ function _createSchema() {
   try { _db.exec('ALTER TABLE queue_items ADD COLUMN grounding_type TEXT'); } catch (_) {}
   try { _db.exec('ALTER TABLE queue_items ADD COLUMN grounding_description TEXT'); } catch (_) {}
   try { _db.exec('ALTER TABLE queue_items ADD COLUMN grounded_at TEXT'); } catch (_) {}
+
+  // Conversation import columns on sessions
+  try { _db.exec('ALTER TABLE sessions ADD COLUMN source TEXT DEFAULT \'guardian\''); } catch (_) {}
+  try { _db.exec('ALTER TABLE sessions ADD COLUMN import_batch_id TEXT'); } catch (_) {}
+  try { _db.exec('ALTER TABLE sessions ADD COLUMN original_id TEXT'); } catch (_) {}
+  try { _db.exec('ALTER TABLE sessions ADD COLUMN message_count INTEGER DEFAULT 0'); } catch (_) {}
 
   log.info('Database schema ready');
 }
@@ -1027,4 +1073,155 @@ const providerStore = {
   },
 };
 
-module.exports = { open, close, db, sessions, messages, notes, usage, queue, compression, search, migrateFromJSON, noteSources, entityNotes, providerStore };
+// ── Reframe Events (Perlocutionary Audit) ────────────────────
+
+const reframe = {
+  add(event) {
+    db().prepare(`
+      INSERT INTO reframe_events (id, session_id, message_id, user_context, reframe_text, reframe_type, confidence, identity_dimension, acknowledged, accurate, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      event.id,
+      event.sessionId,
+      event.messageId,
+      event.userContext,
+      event.reframeText,
+      event.reframeType,
+      event.confidence != null ? event.confidence : 0.0,
+      event.identityDimension || null,
+      event.acknowledged ? 1 : 0,
+      event.accurate != null ? event.accurate : -1,
+      event.createdAt || new Date().toISOString()
+    );
+    return event.id;
+  },
+
+  list({ sessionId, type, dimension, acknowledged, limit = 100, offset = 0 } = {}) {
+    let sql = 'SELECT * FROM reframe_events';
+    const where = [];
+    const params = [];
+
+    if (sessionId != null) {
+      where.push('session_id = ?');
+      params.push(sessionId);
+    }
+    if (type != null) {
+      where.push('reframe_type = ?');
+      params.push(type);
+    }
+    if (dimension != null) {
+      where.push('identity_dimension = ?');
+      params.push(dimension);
+    }
+    if (acknowledged != null) {
+      where.push('acknowledged = ?');
+      params.push(acknowledged ? 1 : 0);
+    }
+
+    if (where.length > 0) {
+      sql += ' WHERE ' + where.join(' AND ');
+    }
+    sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    return db().prepare(sql).all(...params);
+  },
+
+  rate(id, accurate) {
+    db().prepare('UPDATE reframe_events SET accurate = ? WHERE id = ?').run(accurate, id);
+  },
+
+  acknowledge(id) {
+    db().prepare('UPDATE reframe_events SET acknowledged = 1 WHERE id = ?').run(id);
+  },
+
+  acknowledgeAll() {
+    db().prepare('UPDATE reframe_events SET acknowledged = 1 WHERE acknowledged = 0').run();
+  },
+
+  stats() {
+    const total = db().prepare('SELECT COUNT(*) as c FROM reframe_events').get().c;
+    const unacknowledged = db().prepare('SELECT COUNT(*) as c FROM reframe_events WHERE acknowledged = 0').get().c;
+
+    // By type
+    const typeRows = db().prepare(
+      'SELECT reframe_type, COUNT(*) as c FROM reframe_events GROUP BY reframe_type'
+    ).all();
+    const byType = { contrast: 0, relabel: 0, identity: 0, minimize: 0, inflate: 0, certainty: 0, redirect: 0 };
+    for (const r of typeRows) {
+      byType[r.reframe_type] = r.c;
+    }
+
+    // By dimension
+    const dimRows = db().prepare(
+      'SELECT identity_dimension, COUNT(*) as c FROM reframe_events WHERE identity_dimension IS NOT NULL GROUP BY identity_dimension'
+    ).all();
+    const byDimension = { emotional: 0, professional: 0, cognitive: 0, relational: 0, ambition: 0, worth: 0, somatic: 0, creative: 0 };
+    for (const r of dimRows) {
+      byDimension[r.identity_dimension] = r.c;
+    }
+
+    // Accuracy rate
+    const ratedTotal = db().prepare('SELECT COUNT(*) as c FROM reframe_events WHERE accurate != -1').get().c;
+    const ratedAccurate = db().prepare('SELECT COUNT(*) as c FROM reframe_events WHERE accurate = 1').get().c;
+    const accuracyRate = ratedTotal > 0 ? ratedAccurate / ratedTotal : null;
+
+    return { total, unacknowledged, byType, byDimension, accuracyRate };
+  },
+
+  getDriftScore(days = 30) {
+    const cutoff = new Date(Date.now() - days * 86400000).toISOString();
+    const ratedTotal = db().prepare(
+      'SELECT COUNT(*) as c FROM reframe_events WHERE accurate != -1 AND created_at >= ?'
+    ).get(cutoff).c;
+    if (ratedTotal === 0) return null;
+    const ratedAccurate = db().prepare(
+      'SELECT COUNT(*) as c FROM reframe_events WHERE accurate = 1 AND created_at >= ?'
+    ).get(cutoff).c;
+    return ratedAccurate / ratedTotal;
+  },
+};
+
+// ── Import Batches ───────────────────────────────────────────
+
+const importBatches = {
+  create(batch) {
+    const id = batch.id || `ib_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    db().prepare(`
+      INSERT INTO import_batches (id, source, file_name, file_size, status, total_conversations, started_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      batch.source,
+      batch.fileName || null,
+      batch.fileSize || 0,
+      batch.status || 'pending',
+      batch.totalConversations || 0,
+      batch.startedAt || new Date().toISOString()
+    );
+    return id;
+  },
+
+  update(id, updates) {
+    const fields = [];
+    const values = [];
+    for (const [key, val] of Object.entries(updates)) {
+      const col = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      fields.push(`${col} = ?`);
+      values.push(val);
+    }
+    if (fields.length === 0) return;
+    values.push(id);
+    db().prepare(`UPDATE import_batches SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  },
+
+  get(id) {
+    return db().prepare('SELECT * FROM import_batches WHERE id = ?').get(id);
+  },
+
+  list() {
+    return db().prepare('SELECT * FROM import_batches ORDER BY started_at DESC').all();
+  },
+};
+
+module.exports = { open, close, db, sessions, messages, notes, usage, queue, compression, search, migrateFromJSON, noteSources, entityNotes, providerStore, reframe, importBatches };

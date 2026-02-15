@@ -1,7 +1,7 @@
 {
   "name": "guardian-ui",
   "version": "0.1.0",
-  "description": "Mission control interface wrapping Claude Code — resizable panels for chat, terminal, notes, and memory search",
+  "description": "Neuroprotective cognitive infrastructure — integrated workspace with chat, terminal, notes, and hierarchical memory",
   "main": "main.js",
   "scripts": {
     "dev": "vite",

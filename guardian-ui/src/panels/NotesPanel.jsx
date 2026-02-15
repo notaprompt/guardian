@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import PanelHeader from '../components/PanelHeader';
 import useStore from '../store';
 
+const DimensionLandscape = React.lazy(() => import('../components/DimensionLandscape'));
+const DimensionDetail = React.lazy(() => import('../components/DimensionDetail'));
+
 // ── Note type definitions ─────────────────────────────────────
 const NOTE_TYPES = [
   { id: 'all',        label: 'All' },
@@ -235,6 +238,48 @@ function MemoryLayers() {
   );
 }
 
+// ── Memory View (with Landscape tab) ─────────────────────────
+function MemoryView() {
+  const [memoryTab, setMemoryTab] = useState('layers'); // 'layers' | 'landscape'
+  const selectedDimension = useStore((s) => s.selectedDimension);
+
+  return (
+    <div className="zone-body" style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {/* Memory sub-tab toggle */}
+      <div className="memory-view__toggle">
+        <button
+          className={`memory-view__toggle-btn${memoryTab === 'layers' ? ' memory-view__toggle-btn--active' : ''}`}
+          onClick={() => setMemoryTab('layers')}
+        >
+          principles & patterns
+        </button>
+        <button
+          className={`memory-view__toggle-btn${memoryTab === 'landscape' ? ' memory-view__toggle-btn--active' : ''}`}
+          onClick={() => setMemoryTab('landscape')}
+        >
+          landscape
+        </button>
+      </div>
+
+      {memoryTab === 'layers' && <MemoryLayers />}
+
+      {memoryTab === 'landscape' && (
+        <React.Suspense
+          fallback={
+            <div className="empty-state">
+              <div className="empty-state__icon" style={{ animation: 'pulse 1.5s infinite' }}>&#9671;</div>
+              <div className="empty-state__text">Loading landscape...</div>
+            </div>
+          }
+        >
+          <DimensionLandscape />
+          {selectedDimension && <DimensionDetail />}
+        </React.Suspense>
+      )}
+    </div>
+  );
+}
+
 // ── Main Notes Panel ──────────────────────────────────────────
 function NotesPanelInner() {
   const notes = useStore((s) => s.notes);
@@ -346,9 +391,7 @@ function NotesPanelInner() {
       </div>
 
       {noteTypeFilter === 'memory' ? (
-        <div className="zone-body" style={{ overflowY: 'auto', flex: 1 }}>
-          <MemoryLayers />
-        </div>
+        <MemoryView />
       ) : (
         <div className="zone-body notes-layout">
           {/* ── Note List (left sidebar) ────────────────────── */}

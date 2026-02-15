@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import useStore from '../store';
 import '../styles/settings.css';
+
+const ImportWizard = lazy(() => import('./ImportWizard'));
 
 const SECTIONS = [
   { id: 'profile',       label: 'Profile',        icon: '\u25C7' },
@@ -11,6 +13,7 @@ const SECTIONS = [
   { id: 'detection',     label: 'Detection',       icon: '\u25CE' },
   { id: 'accessibility', label: 'Accessibility',   icon: '\u2316' },
   { id: 'data',          label: 'Data',            icon: '\u2302' },
+  { id: 'import',        label: 'Memory Import',   icon: '\u21E9' },
   { id: 'usage',         label: 'Usage Stats',     icon: '\u2261' },
   { id: 'shortcuts',     label: 'Shortcuts',       icon: '\u2328' },
   { id: 'about',         label: 'About',           icon: '\u2609' },
@@ -75,6 +78,7 @@ function SettingsPanelInner() {
   const deleteApiKey = useStore((s) => s.deleteApiKey);
   const fetchApiKeyStatus = useStore((s) => s.fetchApiKeyStatus);
   const testApiKey = useStore((s) => s.testApiKey);
+  const setSearchPanelTab = useStore((s) => s.setSearchPanelTab);
 
   const panelRef = useRef(null);
   const [activeSection, setActiveSection] = useState('profile');
@@ -237,6 +241,14 @@ function SettingsPanelInner() {
                 config={config}
                 updateConfig={updateConfig}
               />
+            )}
+            {activeSection === 'import' && (
+              <Suspense fallback={<div className="settings-section__title">Loading...</div>}>
+                <ImportWizard onNavigateToExplorer={() => {
+                  toggleSettings();
+                  setSearchPanelTab('memory');
+                }} />
+              </Suspense>
             )}
             {activeSection === 'usage' && <UsageStatsSection />}
             {activeSection === 'shortcuts' && <ShortcutsSection />}
@@ -476,6 +488,7 @@ const API_KEY_PROVIDERS = [
   { type: 'anthropic', name: 'Anthropic' },
   { type: 'openai',    name: 'OpenAI' },
   { type: 'moonshot',  name: 'Moonshot' },
+  { type: 'fireworks', name: 'Fireworks AI' },
 ];
 
 function ApiKeysSection({ apiKeyStatus, setApiKey, deleteApiKey, fetchApiKeyStatus, testApiKey }) {

@@ -3,6 +3,8 @@ import PanelHeader from '../components/PanelHeader';
 import useStore from '../store';
 
 const KnowledgeGraph = lazy(() => import('../components/KnowledgeGraph'));
+const DriftTab = lazy(() => import('../components/DriftTab'));
+const MemoryExplorer = lazy(() => import('../components/MemoryExplorer'));
 
 function SearchPanelInner() {
   const query = useStore((s) => s.searchQuery);
@@ -27,8 +29,11 @@ function SearchPanelInner() {
   const skipGrounding = useStore((s) => s.skipGrounding);
   const fetchGroundingStats = useStore((s) => s.fetchGroundingStats);
   const hideGrounding = useStore((s) => s.hideGrounding);
+  const reframeUnacknowledged = useStore((s) => s.reframeUnacknowledged);
+  const fetchReframeStats = useStore((s) => s.fetchReframeStats);
+  const tab = useStore((s) => s.searchPanelTab);
+  const setTab = useStore((s) => s.setSearchPanelTab);
   const [isSearching, setIsSearching] = useState(false);
-  const [tab, setTab] = useState('queue'); // 'search' | 'sessions' | 'queue' | 'graph'
   const [newThread, setNewThread] = useState('');
   const [summarizingIds, setSummarizingIds] = useState(new Set());
   const [groundingType, setGroundingType] = useState(null);
@@ -84,6 +89,10 @@ function SearchPanelInner() {
     fetchGroundingStats();
   }, [fetchGroundingStats]);
 
+  useEffect(() => {
+    fetchReframeStats();
+  }, [fetchReframeStats]);
+
   const handleGroundingConfirm = useCallback((itemId) => {
     if (!groundingType) return;
     resolveWithGrounding(itemId, groundingType, groundingDesc);
@@ -133,6 +142,30 @@ function SearchPanelInner() {
           aria-label="Knowledge graph"
         >
           &#9672;
+        </button>
+        <button
+          className={`zone-head__btn${tab === 'drift' ? ' zone-head__btn--active' : ''}`}
+          onClick={() => setTab('drift')}
+          title="Perlocutionary audit"
+          role="tab"
+          aria-selected={tab === 'drift'}
+          aria-label="Perlocutionary audit"
+          style={{ position: 'relative' }}
+        >
+          &#9671;
+          {reframeUnacknowledged > 0 && (
+            <span className="drift-badge">{reframeUnacknowledged}</span>
+          )}
+        </button>
+        <button
+          className={`zone-head__btn${tab === 'memory' ? ' zone-head__btn--active' : ''}`}
+          onClick={() => setTab('memory')}
+          title="Memory explorer"
+          role="tab"
+          aria-selected={tab === 'memory'}
+          aria-label="Memory explorer"
+        >
+          {'\u21E9'}
         </button>
       </PanelHeader>
 
@@ -430,6 +463,38 @@ function SearchPanelInner() {
             }
           >
             <KnowledgeGraph />
+          </Suspense>
+        </div>
+      )}
+
+      {/* ── Perlocutionary Audit (Drift Tab) ─────── */}
+      {tab === 'drift' && (
+        <div className="zone-body" style={{ overflowY: 'auto', flex: 1 }}>
+          <Suspense
+            fallback={
+              <div className="empty-state">
+                <div className="empty-state__icon" style={{ animation: 'pulse 1.5s infinite' }}>&#9671;</div>
+                <div className="empty-state__text">Loading drift data...</div>
+              </div>
+            }
+          >
+            <DriftTab />
+          </Suspense>
+        </div>
+      )}
+
+      {/* ── Memory Explorer ──────────────────────── */}
+      {tab === 'memory' && (
+        <div className="zone-body" style={{ overflowY: 'auto', flex: 1 }}>
+          <Suspense
+            fallback={
+              <div className="empty-state">
+                <div className="empty-state__icon" style={{ animation: 'pulse 1.5s infinite' }}>{'\u21E9'}</div>
+                <div className="empty-state__text">Loading memory explorer...</div>
+              </div>
+            }
+          >
+            <MemoryExplorer />
           </Suspense>
         </div>
       )}

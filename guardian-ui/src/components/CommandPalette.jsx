@@ -94,7 +94,7 @@ const COMMANDS = [
     action: (store) => store.setFocusedPanel('artifacts') },
 
   // Sessions
-  { id: 'new-session',     name: 'New Chat Session',         icon: '+',  category: 'session',    desc: 'Start a fresh conversation',
+  { id: 'new-session',     name: 'New Chat Session',         icon: '+',  category: 'session',    desc: 'Start new session',
     action: (store) => store.clearChat() },
 
   // Notes

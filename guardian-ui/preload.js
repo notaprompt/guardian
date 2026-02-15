@@ -234,6 +234,19 @@ contextBridge.exposeInMainWorld('guardian', {
     markdown: () => ipcRenderer.invoke('guardian:import:markdown'),
     obsidian: () => ipcRenderer.invoke('guardian:import:obsidian'),
     backup: () => ipcRenderer.invoke('guardian:import:backup'),
+    conversations: {
+      selectFile: () => ipcRenderer.invoke('guardian:import:conversations:selectFile'),
+      validate: (filePath) => ipcRenderer.invoke('guardian:import:conversations:validate', { filePath }),
+      start: (filePath) => ipcRenderer.invoke('guardian:import:conversations:start', { filePath }),
+      cancel: (batchId) => ipcRenderer.invoke('guardian:import:conversations:cancel', { batchId }),
+      status: (batchId) => ipcRenderer.invoke('guardian:import:conversations:status', { batchId }),
+      batches: () => ipcRenderer.invoke('guardian:import:conversations:batches'),
+      onProgress: (callback) => {
+        const handler = (_event, payload) => callback(payload);
+        ipcRenderer.on('guardian:import:conversations:progress', handler);
+        return () => ipcRenderer.removeListener('guardian:import:conversations:progress', handler);
+      },
+    },
   },
 
   // ── Auto-Update ─────────────────────────────────────
@@ -284,6 +297,22 @@ contextBridge.exposeInMainWorld('guardian', {
     delete: (provider) => ipcRenderer.invoke('guardian:keys:delete', { provider }),
     list: () => ipcRenderer.invoke('guardian:keys:list'),
     test: (provider) => ipcRenderer.invoke('guardian:keys:test', { provider }),
+  },
+
+  // ── Perlocutionary Audit (Reframe Detection) ────────
+  reframe: {
+    list: (filters) => ipcRenderer.invoke('guardian:reframe:list', filters),
+    rate: (id, accurate) => ipcRenderer.invoke('guardian:reframe:rate', { id, accurate }),
+    acknowledge: (id) => ipcRenderer.invoke('guardian:reframe:acknowledge', { id }),
+    acknowledgeAll: () => ipcRenderer.invoke('guardian:reframe:acknowledgeAll'),
+    stats: () => ipcRenderer.invoke('guardian:reframe:stats'),
+    drift: (days) => ipcRenderer.invoke('guardian:reframe:drift', { days }),
+  },
+
+  // ── Identity Dimensions ────────────────────────────
+  dimensions: {
+    scores: (days) => ipcRenderer.invoke('guardian:dimensions:scores', { days }),
+    timeline: (weeks) => ipcRenderer.invoke('guardian:dimensions:timeline', { weeks }),
   },
 
   // ── Performance Profiling ────────────────────────────
