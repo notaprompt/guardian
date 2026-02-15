@@ -12,3 +12,11 @@ out/
 # Local Claude Code config (personal, don't commit)
 .claude/settings.local.json
 CLAUDE.local.md
+
+# Protected IP (stored locally at ~/Documents/guardian-private/)
+arch/TRIM_v5_full.txt
+arch/TRIM*.docx
+arch/TRIM*.pdf
+arch/GUARDIAN_PRODUCT_SPEC.md
+arch/BRAND_VOICE_GUIDE.md
+arch/MEMORY_IMPORT_SPEC.md
