@@ -1,19 +1,21 @@
-import React, { useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
+import React, { useEffect, useMemo, useCallback, useRef, useState, lazy, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { Allotment } from 'allotment';
 import 'allotment/dist/style.css';
 
-import TerminalPanel from './panels/TerminalPanel';
 import ChatPanel from './panels/ChatPanel';
-import NotesPanel from './panels/NotesPanel';
-import SearchPanel from './panels/SearchPanel';
+import SidebarContainer from './components/SidebarContainer';
 import ErrorBoundary from './components/ErrorBoundary';
 import ModelPicker from './components/ModelPicker';
+import TerminalPanel from './panels/TerminalPanel';
+import { TerminalHostContext } from './TerminalHostContext';
 import useStore from './store';
 
 // Lazy-load heavy overlay components — only mounted when visible
 const CommandPalette = lazy(() => import('./components/CommandPalette'));
 const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
 const Onboarding = lazy(() => import('./components/Onboarding'));
+const TerminalWindow = lazy(() => import('./components/TerminalWindow'));
 
 /*
   Navigation Instruments:
@@ -24,13 +26,11 @@ const Onboarding = lazy(() => import('./components/Onboarding'));
   - Drift detection: subtle status message when interaction pattern shifts
 */
 
-const PANEL_KEYS = { '1': 'terminal', '2': 'chat', '3': 'notes', '4': 'artifacts' };
+const PANEL_KEYS = { '2': 'chat' };
 
 // Default proportional sizes (used for reset on double-click)
-const DEFAULT_SIZES = {
-  horizontal: [40, 40, 20],   // terminal col, chat col, right col (%)
-  right: [50, 50],             // notes, artifacts (%)
-};
+const DEFAULT_SIZES_UNDOCKED = [67, 33];         // chat 2/3, sidebar 1/3
+const DEFAULT_SIZES_DOCKED = [35, 40, 25];       // terminal, chat, sidebar (%)
 
 // Debounce helper
 function debounce(fn, ms) {
@@ -78,12 +78,39 @@ export default function App() {
   const fetchModelSettings = useStore((s) => s.fetchModelSettings);
   const setLastAutoTier = useStore((s) => s.setLastAutoTier);
   const loadA11yPreferences = useStore((s) => s.loadA11yPreferences);
+  const toggleSidebar = useStore((s) => s.toggleSidebar);
+  const toggleTerminalWindow = useStore((s) => s.toggleTerminalWindow);
+  const terminalDocked = useStore((s) => s.terminalDocked);
+  const undockTerminal = useStore((s) => s.undockTerminal);
   const driftRef = useRef(null);
   const lastDriftRef = useRef(null);
 
-  // Refs for Allotment instances to support double-click reset
+  // Ref for Allotment instance to support double-click reset
   const horizontalRef = useRef(null);
-  const rightRef = useRef(null);
+
+  // Persistent DOM div for terminal — survives dock/undock without unmounting
+  const [terminalHost] = useState(() => {
+    const div = document.createElement('div');
+    div.className = 'terminal-host';
+    return div;
+  });
+
+  // Ref for docked terminal body container
+  const dockedBodyRef = useRef(null);
+
+  // Mount terminalHost into docked pane when docked
+  useEffect(() => {
+    if (!terminalDocked) return;
+    const el = dockedBodyRef.current;
+    if (el && terminalHost) {
+      el.appendChild(terminalHost);
+      const timer = setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+      return () => {
+        clearTimeout(timer);
+        if (terminalHost.parentNode === el) el.removeChild(terminalHost);
+      };
+    }
+  }, [terminalDocked, terminalHost]);
 
   // Bootstrap
   useEffect(() => {
@@ -140,13 +167,9 @@ export default function App() {
   const handleHorizontalChange = useCallback((sizes) => {
     if (maximizedPanel) return;
     const current = useStore.getState().layoutSizes || {};
-    debouncedSaveLayout({ ...current, horizontal: sizes });
-  }, [maximizedPanel, debouncedSaveLayout]);
-
-  const handleRightChange = useCallback((sizes) => {
-    if (maximizedPanel) return;
-    const current = useStore.getState().layoutSizes || {};
-    debouncedSaveLayout({ ...current, right: sizes });
+    const docked = useStore.getState().terminalDocked;
+    const key = docked ? 'horizontalDocked' : 'horizontalUndocked';
+    debouncedSaveLayout({ ...current, [key]: sizes });
   }, [maximizedPanel, debouncedSaveLayout]);
 
   // Keyboard navigation
@@ -163,10 +186,21 @@ export default function App() {
       toggleSettings();
       return;
     }
-    // Ctrl+1/2/3/4 — focus panel
+    // Ctrl+1 — toggle terminal window
+    if (e.ctrlKey && !e.shiftKey && e.key === '1') {
+      e.preventDefault();
+      toggleTerminalWindow();
+      return;
+    }
+    // Ctrl+2 — focus chat panel
     if (e.ctrlKey && !e.shiftKey && PANEL_KEYS[e.key]) {
       e.preventDefault();
       setFocusedPanel(PANEL_KEYS[e.key]);
+    }
+    // Ctrl+3 — toggle sidebar
+    if (e.ctrlKey && !e.shiftKey && e.key === '3') {
+      e.preventDefault();
+      toggleSidebar();
     }
     // Ctrl+Shift+M — maximize/restore focused panel
     if (e.ctrlKey && e.shiftKey && (e.key === 'M' || e.key === 'm')) {
@@ -183,7 +217,7 @@ export default function App() {
     if (e.key === 'Escape') {
       document.activeElement?.blur();
     }
-  }, [setFocusedPanel, toggleMaximizedPanel, toggleCommandPalette, toggleSettings]);
+  }, [setFocusedPanel, toggleMaximizedPanel, toggleCommandPalette, toggleSettings, toggleSidebar, toggleTerminalWindow]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -252,18 +286,17 @@ export default function App() {
 
   // Compute visibility for maximize mode
   const isMax = maximizedPanel !== null;
-  const showTerminal = !isMax || maximizedPanel === 'terminal';
+  const showTerminal = terminalDocked && (!isMax || maximizedPanel === 'terminal');
   const showChat = !isMax || maximizedPanel === 'chat';
-  const showNotes = !isMax || maximizedPanel === 'notes';
-  const showArtifacts = !isMax || maximizedPanel === 'artifacts';
-  const showLeftCol = showTerminal || showChat;
-  const showRightCol = showNotes || showArtifacts;
+  const showSidebar = !isMax || maximizedPanel === 'sidebar';
 
   // Compute preferred sizes from saved layout or defaults
-  const hSizes = layoutSizes?.horizontal || undefined;
-  const rSizes = layoutSizes?.right || undefined;
+  const defaultSizes = terminalDocked ? DEFAULT_SIZES_DOCKED : DEFAULT_SIZES_UNDOCKED;
+  const layoutKey = terminalDocked ? 'horizontalDocked' : 'horizontalUndocked';
+  const hSizes = layoutSizes?.[layoutKey] || undefined;
 
   return (
+    <TerminalHostContext.Provider value={terminalHost}>
     <div className="cockpit cockpit--allotment" style={orbStyle} role="application" aria-label="Guardian workspace">
       {/* ── Skip Navigation ────────────────────────── */}
       <a href="#main-panels" className="skip-nav">Skip to main content</a>
@@ -313,27 +346,39 @@ export default function App() {
           defaultSizes={hSizes}
           onChange={handleHorizontalChange}
           onReset={() => {
-            horizontalRef.current?.resize(DEFAULT_SIZES.horizontal);
+            horizontalRef.current?.resize(defaultSizes);
           }}
         >
-          {/* ── Left Column: Terminal (full height) ────── */}
-          <Allotment.Pane
-            minSize={isMax && !showTerminal ? 0 : 120}
-            visible={showTerminal}
-          >
-            <div
-              className={`zone zone--terminal${focusedPanel === 'terminal' ? ' zone--focused' : ''}`}
-              onClick={() => setFocusedPanel('terminal')}
-              role="region"
-              aria-label="Terminal panel"
+          {/* ── Docked Terminal Column (only when docked) ── */}
+          {terminalDocked && (
+            <Allotment.Pane
+              minSize={isMax && !showTerminal ? 0 : 120}
+              visible={showTerminal}
             >
-              <ErrorBoundary name="Terminal">
-                <TerminalPanel />
-              </ErrorBoundary>
-            </div>
-          </Allotment.Pane>
+              <div
+                className={`zone zone--terminal${focusedPanel === 'terminal' ? ' zone--focused' : ''}`}
+                onClick={() => setFocusedPanel('terminal')}
+                role="region"
+                aria-label="Terminal panel"
+              >
+                <div className="zone-head">
+                  <div className="zone-head__left">
+                    <span className="zone-head__label zone-head__label--active">Terminal</span>
+                  </div>
+                  <div className="zone-head__actions">
+                    <button className="zone-head__btn" onClick={undockTerminal} title="Pop out to floating window">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 5V2h5M9 12V9h3M2 2l4 4M13 9l-4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div className="zone-body" ref={dockedBodyRef} />
+              </div>
+            </Allotment.Pane>
+          )}
 
-          {/* ── Middle Column: Chat (full height) ────── */}
+          {/* ── Chat Column ────────────────────────── */}
           <Allotment.Pane
             minSize={isMax && !showChat ? 0 : 120}
             visible={showChat}
@@ -350,56 +395,37 @@ export default function App() {
             </div>
           </Allotment.Pane>
 
-          {/* ── Right Column: Notes + Artifacts (vertical split) ── */}
+          {/* ── Sidebar Column (ActivityBar + content) ── */}
           <Allotment.Pane
-            minSize={isMax && !showRightCol ? 0 : 100}
-            visible={showRightCol}
+            minSize={isMax && !showSidebar ? 0 : 44}
+            visible={showSidebar}
           >
-            <Allotment
-              ref={rightRef}
-              vertical
-              proportionalLayout
-              defaultSizes={rSizes}
-              onChange={handleRightChange}
-              onReset={() => {
-                rightRef.current?.resize(DEFAULT_SIZES.right);
-              }}
+            <div
+              className={`zone zone--sidebar${focusedPanel === 'sidebar' ? ' zone--focused' : ''}`}
+              onClick={() => setFocusedPanel('sidebar')}
+              role="region"
+              aria-label="Sidebar panel"
             >
-              <Allotment.Pane
-                minSize={isMax && !showNotes ? 0 : 60}
-                visible={showNotes}
-              >
-                <div
-                  className={`zone zone--notes${focusedPanel === 'notes' ? ' zone--focused' : ''}`}
-                  onClick={() => setFocusedPanel('notes')}
-                  role="region"
-                  aria-label="Notes panel"
-                >
-                  <ErrorBoundary name="Notes">
-                    <NotesPanel />
-                  </ErrorBoundary>
-                </div>
-              </Allotment.Pane>
-
-              <Allotment.Pane
-                minSize={isMax && !showArtifacts ? 0 : 60}
-                visible={showArtifacts}
-              >
-                <div
-                  className={`zone zone--artifacts${focusedPanel === 'artifacts' ? ' zone--focused' : ''}`}
-                  onClick={() => setFocusedPanel('artifacts')}
-                  role="region"
-                  aria-label="Search and artifacts panel"
-                >
-                  <ErrorBoundary name="Search">
-                    <SearchPanel />
-                  </ErrorBoundary>
-                </div>
-              </Allotment.Pane>
-            </Allotment>
+              <ErrorBoundary name="Sidebar">
+                <SidebarContainer />
+              </ErrorBoundary>
+            </div>
           </Allotment.Pane>
         </Allotment>
       </main>
+
+      {/* ── Floating Terminal Window (hidden when docked) ── */}
+      {!terminalDocked && (
+        <Suspense fallback={null}>
+          <TerminalWindow />
+        </Suspense>
+      )}
+
+      {/* ── Terminal Portal: renders once into persistent host div ── */}
+      {createPortal(
+        <ErrorBoundary name="Terminal"><TerminalPanel /></ErrorBoundary>,
+        terminalHost
+      )}
 
       {/* ── Bottom Bar — Telemetry Strip ────────── */}
       <footer className="bottom-bar" role="contentinfo" aria-label="Session telemetry">
@@ -486,5 +512,6 @@ export default function App() {
         <SettingsPanel />
       </Suspense>
     </div>
+    </TerminalHostContext.Provider>
   );
 }
