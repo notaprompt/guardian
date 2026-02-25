@@ -39,6 +39,7 @@ const perf = require('./lib/performance');
 const librarian = require('./lib/librarian');
 const providers = require('./lib/providers');
 const secureStore = require('./lib/secure-store');
+const reflections = require('./lib/reflections');
 
 // Start performance tracking immediately on module load
 perf.markStartupBegin();
@@ -112,25 +113,16 @@ const defaultShell = os.platform() === 'win32'
   ? 'powershell.exe'
   : process.env.SHELL || '/bin/bash';
 
-const claudeBinDir = path.join(os.homedir(), '.local', 'bin');
-const sep = process.platform === 'win32' ? ';' : ':';
-const currentPath = process.env.Path || process.env.PATH || '';
-const newPath = claudeBinDir + sep + currentPath;
+const { getClaudePath, newPath: claudeNewPath } = require('./lib/claude-cli');
 const { CLAUDECODE: _drop, ...cleanEnv } = process.env;
 const ptyEnv = {
   ...cleanEnv,
-  Path: newPath,
-  PATH: newPath,
+  Path: claudeNewPath,
+  PATH: claudeNewPath,
   ...(process.platform !== 'win32' ? { TERM: 'xterm-256color', COLORTERM: 'truecolor' } : {})
 };
 
 // ── Claude CLI ──────────────────────────────────────────────────
-function getClaudePath() {
-  const localBin = path.join(os.homedir(), '.local', 'bin', 'claude.exe');
-  if (fs.existsSync(localBin)) return localBin;
-  return 'claude';
-}
-
 function isClaudeAvailable() {
   const p = getClaudePath();
   if (p === 'claude') {
@@ -209,12 +201,16 @@ function createWindow() {
     perf.logMemory('post-startup');
   });
 
-  // Persist window size on resize
+  // Persist window size on resize (debounced to avoid disk thrash)
+  let resizeTimer = null;
   mainWindow.on('resize', () => {
-    if (mainWindow && !mainWindow.isMaximized()) {
-      const [w, h] = mainWindow.getSize();
-      writeJSON(FILES.layout, { ...readJSON(FILES.layout, {}), width: w, height: h });
-    }
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isMaximized()) {
+        const [w, h] = mainWindow.getSize();
+        writeJSON(FILES.layout, { ...readJSON(FILES.layout, {}), width: w, height: h });
+      }
+    }, 500);
   });
 
   mainWindow.on('closed', () => {
@@ -477,6 +473,181 @@ const telemetry = {
   },
 };
 
+// ── Post-Chat Pipeline (sequential queue) ───────────────────────
+// Runs awareness, summarize, embeddings, KG extraction, and librarian
+// sequentially instead of spawning all 5 at once.
+
+function runPostChatPipeline(sessionId) {
+  const steps = [
+    // Step 1: Awareness-trap detection (synchronous, fast)
+    function awarenessStep() {
+      try {
+        const profile = readJSON(FILES.profile, null);
+        const detection = awareness.detect(database, sessionId, profile);
+        if (detection) {
+          log.info('Awareness pattern detected:', detection.topic, 'confidence:', detection.confidence);
+          send('guardian:awareness:detected', detection);
+        }
+      } catch (e) {
+        log.warn('Awareness detection failed:', e.message);
+      }
+    },
+
+    // Step 2: Auto-summarize + compression cascade
+    function summarizeStep() {
+      return new Promise((resolve) => {
+        try {
+          const msgs = database.messages.listBySession(sessionId);
+          if (msgs.length < 2) { resolve(); return; }
+          summarizeSession({
+            sessionId,
+            messages: msgs,
+            onComplete: (sid, summary) => {
+              try {
+                database.sessions.updateSummary(sid, summary);
+                send('guardian:session:summaryReady', { sessionId: sid, summary });
+              } catch (e) {
+                log.warn('Failed to save summary:', e.message);
+              }
+              // Register L1 compression entry and trigger L2/L3 cascade
+              try {
+                const compressionPipeline = require('./lib/compression');
+                const result = compressionPipeline.registerL1(database, sid, summary);
+                if (result.shouldTriggerL2) {
+                  compressionPipeline.extractPatterns(database, {
+                    onComplete: (l2Items) => {
+                      log.info('L2 pattern extraction complete:', l2Items.length, 'patterns');
+                      send('guardian:compression:complete', { level: 2, count: l2Items.length });
+                      const l2Count = database.compression.countSinceLastCompression(2);
+                      if (l2Count >= 3) {
+                        compressionPipeline.distillPrinciples(database, {
+                          onComplete: (l3Items) => {
+                            log.info('L3 principle distillation complete:', l3Items.length, 'principles');
+                            send('guardian:compression:complete', { level: 3, count: l3Items.length });
+                          },
+                          onError: (err) => log.warn('L3 distillation failed:', err.message),
+                        });
+                      }
+                    },
+                    onError: (err) => log.warn('L2 extraction failed:', err.message),
+                  });
+                }
+              } catch (e) {
+                log.warn('Compression L1 registration failed:', e.message);
+              }
+              resolve();
+            },
+            onError: (sid, err) => {
+              log.warn('Auto-summarize failed for', sid, ':', err.message);
+              resolve();
+            },
+          });
+        } catch (e) {
+          log.warn('Auto-summarize setup failed:', e.message);
+          resolve();
+        }
+      });
+    },
+
+    // Step 3: Semantic embedding indexing
+    function embeddingsStep() {
+      return new Promise((resolve) => {
+        try {
+          const msgs = database.messages.listBySession(sessionId);
+          if (msgs.length < 2) { resolve(); return; }
+          embeddings.indexSession({
+            sessionId,
+            messages: msgs,
+            onComplete: (sid, count) => {
+              log.info('Embeddings indexed for session', sid, ':', count, 'chunks');
+              send('guardian:embeddings:indexed', { sessionId: sid, chunks: count });
+              resolve();
+            },
+            onError: (sid, err) => {
+              log.warn('Embedding indexing failed for', sid, ':', err.message);
+              resolve();
+            },
+          });
+        } catch (e) {
+          log.warn('Embedding indexing setup failed:', e.message);
+          resolve();
+        }
+      });
+    },
+
+    // Step 4: Knowledge graph entity extraction
+    function knowledgeGraphStep() {
+      return new Promise((resolve) => {
+        try {
+          const msgs = database.messages.listBySession(sessionId);
+          if (msgs.length < 2) { resolve(); return; }
+          knowledgeGraph.extractEntities(msgs, {
+            onComplete: (entities, relationships) => {
+              try {
+                const result = knowledgeGraph.mergeExtractionResults(
+                  database.db(), entities, relationships, sessionId
+                );
+                log.info('Knowledge graph extracted:', result.entityCount, 'entities,', result.relationshipCount, 'relationships');
+                send('guardian:graph:extracted', { sessionId, ...result });
+              } catch (e) {
+                log.warn('Knowledge graph merge failed:', e.message);
+              }
+              resolve();
+            },
+            onError: (err) => {
+              log.warn('Knowledge graph extraction failed:', err.message);
+              resolve();
+            },
+          });
+        } catch (e) {
+          log.warn('Knowledge graph extraction setup failed:', e.message);
+          resolve();
+        }
+      });
+    },
+
+    // Step 5: Librarian auto-extraction pipeline
+    function librarianStep() {
+      return new Promise((resolve) => {
+        try {
+          const msgs = database.messages.listBySession(sessionId);
+          if (msgs.length < 2) { resolve(); return; }
+          send('guardian:librarian:status', { sessionId, status: 'running' });
+          librarian.runPipeline({
+            sessionId,
+            messages: msgs,
+            db: database,
+            onComplete: (result) => {
+              log.info('Librarian pipeline complete for session', sessionId, JSON.stringify(result));
+              send('guardian:librarian:complete', { sessionId, ...result });
+              resolve();
+            },
+            onError: (err) => {
+              log.warn('Librarian pipeline failed for', sessionId, ':', err.message);
+              send('guardian:librarian:status', { sessionId, status: 'error', error: err.message });
+              resolve();
+            },
+          });
+        } catch (e) {
+          log.warn('Librarian pipeline setup failed:', e.message);
+          resolve();
+        }
+      });
+    },
+  ];
+
+  // Run steps sequentially — each waits for the previous to finish
+  (async () => {
+    for (const step of steps) {
+      try {
+        await step();
+      } catch (e) {
+        log.warn('Post-chat pipeline step failed:', e.message);
+      }
+    }
+  })();
+}
+
 // ── Chat (stream-json Claude session) ───────────────────────────
 
 let chatProcess = null;
@@ -496,14 +667,14 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
     currentSessionId = sessionId;
   }
   if (!currentSessionId) {
-    currentSessionId = `s_${Date.now()}`;
+    currentSessionId = database.generateId('s');
     database.sessions.create(currentSessionId, { title: message.slice(0, 80) });
     send('guardian:chat:sessionCreated', { sessionId: currentSessionId });
     metrics.startSession(currentSessionId);
   }
 
   // Persist user message
-  const userMsgId = `m_${Date.now()}_u`;
+  const userMsgId = database.generateId('m') + '_u';
   database.messages.create({
     id: userMsgId,
     sessionId: currentSessionId,
@@ -663,7 +834,7 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
     });
 
     let assistantContent = '';
-    const asstMsgId = `m_${Date.now()}_a`;
+    const asstMsgId = database.generateId('m') + '_a';
 
     emitter.on('text_delta', (ev) => {
       assistantContent += ev.text;
@@ -749,7 +920,7 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
   let assistantThinking = '';
 
   // Create placeholder assistant message
-  const asstMsgId = `m_${Date.now()}_a`;
+  const asstMsgId = database.generateId('m') + '_a';
 
   proc.stdout.on('data', (chunk) => {
     stdoutBuf += chunk.toString();
@@ -852,154 +1023,10 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
     send('guardian:chat:done', { exitCode: code, sessionId: currentSessionId });
     log.info('Chat process exited:', code);
 
-    // ── Awareness-trap detection ──────────────────────
-    // Run asynchronously after chat completes — never blocks the user
+    // ── Post-chat pipeline (sequential queue) ────────────────────
+    // Runs each pipeline step one at a time instead of spawning all at once
     if (currentSessionId && code === 0) {
-      try {
-        const profile = readJSON(FILES.profile, null);
-        const detection = awareness.detect(database, currentSessionId, profile);
-        if (detection) {
-          log.info('Awareness pattern detected:', detection.topic, 'confidence:', detection.confidence);
-          send('guardian:awareness:detected', detection);
-        }
-      } catch (e) {
-        log.warn('Awareness detection failed:', e.message);
-      }
-    }
-
-    // ── Auto-summarize session ──────────────────────────────────
-    // Generate summary asynchronously after each chat response — never blocks UI
-    if (currentSessionId && code === 0) {
-      const sessionIdToSummarize = currentSessionId;
-      try {
-        const msgs = database.messages.listBySession(sessionIdToSummarize);
-        if (msgs.length >= 2) {
-          summarizeSession({
-            sessionId: sessionIdToSummarize,
-            messages: msgs,
-            onComplete: (sid, summary) => {
-              try {
-                database.sessions.updateSummary(sid, summary);
-                send('guardian:session:summaryReady', { sessionId: sid, summary });
-              } catch (e) {
-                log.warn('Failed to save summary:', e.message);
-              }
-              // Register L1 compression entry and trigger L2/L3 cascade
-              try {
-                const compressionPipeline = require('./lib/compression');
-                const result = compressionPipeline.registerL1(database, sid, summary);
-                if (result.shouldTriggerL2) {
-                  compressionPipeline.extractPatterns(database, {
-                    onComplete: (l2Items) => {
-                      log.info('L2 pattern extraction complete:', l2Items.length, 'patterns');
-                      send('guardian:compression:complete', { level: 2, count: l2Items.length });
-                      // Check L3 threshold
-                      const l2Count = database.compression.countSinceLastCompression(2);
-                      if (l2Count >= 3) {
-                        compressionPipeline.distillPrinciples(database, {
-                          onComplete: (l3Items) => {
-                            log.info('L3 principle distillation complete:', l3Items.length, 'principles');
-                            send('guardian:compression:complete', { level: 3, count: l3Items.length });
-                          },
-                          onError: (err) => log.warn('L3 distillation failed:', err.message),
-                        });
-                      }
-                    },
-                    onError: (err) => log.warn('L2 extraction failed:', err.message),
-                  });
-                }
-              } catch (e) {
-                log.warn('Compression L1 registration failed:', e.message);
-              }
-            },
-            onError: (sid, err) => {
-              log.warn('Auto-summarize failed for', sid, ':', err.message);
-            },
-          });
-        }
-      } catch (e) {
-        log.warn('Auto-summarize setup failed:', e.message);
-      }
-    }
-
-    // ── Semantic embedding indexing ──────────────────────────────
-    // Generate semantic summaries for conversation chunks — async, never blocks UI
-    if (currentSessionId && code === 0) {
-      const sessionIdToIndex = currentSessionId;
-      try {
-        const msgs = database.messages.listBySession(sessionIdToIndex);
-        if (msgs.length >= 2) {
-          embeddings.indexSession({
-            sessionId: sessionIdToIndex,
-            messages: msgs,
-            onComplete: (sid, count) => {
-              log.info('Embeddings indexed for session', sid, ':', count, 'chunks');
-              send('guardian:embeddings:indexed', { sessionId: sid, chunks: count });
-            },
-            onError: (sid, err) => {
-              log.warn('Embedding indexing failed for', sid, ':', err.message);
-            },
-          });
-        }
-      } catch (e) {
-        log.warn('Embedding indexing setup failed:', e.message);
-      }
-    }
-
-    // ── Knowledge graph entity extraction ────────────────
-    // Extract entities and relationships asynchronously — never blocks UI
-    if (currentSessionId && code === 0) {
-      const sessionIdToExtract = currentSessionId;
-      try {
-        const msgs = database.messages.listBySession(sessionIdToExtract);
-        if (msgs.length >= 2) {
-          knowledgeGraph.extractEntities(msgs, {
-            onComplete: (entities, relationships) => {
-              try {
-                const result = knowledgeGraph.mergeExtractionResults(
-                  database.db(), entities, relationships, sessionIdToExtract
-                );
-                log.info('Knowledge graph extracted:', result.entityCount, 'entities,', result.relationshipCount, 'relationships');
-                send('guardian:graph:extracted', { sessionId: sessionIdToExtract, ...result });
-              } catch (e) {
-                log.warn('Knowledge graph merge failed:', e.message);
-              }
-            },
-            onError: (err) => {
-              log.warn('Knowledge graph extraction failed:', err.message);
-            },
-          });
-        }
-      } catch (e) {
-        log.warn('Knowledge graph extraction setup failed:', e.message);
-      }
-    }
-
-    // ── Librarian auto-extraction pipeline ──────────────
-    // Extract insights, create notes, file artifacts — async, never blocks UI
-    if (currentSessionId && code === 0) {
-      const sessionIdToExtractLib = currentSessionId;
-      try {
-        const msgs = database.messages.listBySession(sessionIdToExtractLib);
-        if (msgs.length >= 2) {
-          send('guardian:librarian:status', { sessionId: sessionIdToExtractLib, status: 'running' });
-          librarian.runPipeline({
-            sessionId: sessionIdToExtractLib,
-            messages: msgs,
-            db: database,
-            onComplete: (result) => {
-              log.info('Librarian pipeline complete for session', sessionIdToExtractLib, JSON.stringify(result));
-              send('guardian:librarian:complete', { sessionId: sessionIdToExtractLib, ...result });
-            },
-            onError: (err) => {
-              log.warn('Librarian pipeline failed for', sessionIdToExtractLib, ':', err.message);
-              send('guardian:librarian:status', { sessionId: sessionIdToExtractLib, status: 'error', error: err.message });
-            },
-          });
-        }
-      } catch (e) {
-        log.warn('Librarian pipeline setup failed:', e.message);
-      }
+      runPostChatPipeline(currentSessionId);
     }
   });
 
@@ -1593,7 +1620,7 @@ ipcMain.handle('guardian:config:layout:set', (event, { layout }) => {
 ipcMain.handle('guardian:welcome:init', () => {
   try {
     // Create starter scratch note: brief tip about the three note types
-    const noteId = `welcome_${Date.now()}`;
+    const noteId = database.generateId('welcome');
     database.notes.create({
       id: noteId,
       type: 'scratch',
@@ -2241,6 +2268,96 @@ ipcMain.handle('guardian:reframe:drift', (event, { days }) => {
   } catch (e) {
     log.error('Reframe drift failed:', e.message);
     return { ok: false, error: e.message, score: null };
+  }
+});
+
+// ── Reflections (Self-Exploration) ──────────────────────────────
+
+ipcMain.handle('guardian:reflections:ingest', async (event, { zipPath }) => {
+  try {
+    const db = database.db();
+    const result = reflections.ingestExport(db, zipPath);
+    return { ok: true, ...result };
+  } catch (e) {
+    log.error('Reflections ingest failed:', e.message);
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:reflections:search', (event, opts) => {
+  try {
+    const db = database.db();
+    const results = reflections.search(db, opts);
+    return { ok: true, results };
+  } catch (e) {
+    log.error('Reflections search failed:', e.message);
+    return { ok: false, error: e.message, results: [] };
+  }
+});
+
+ipcMain.handle('guardian:reflections:conversation', (event, { id }) => {
+  try {
+    const db = database.db();
+    const conversation = reflections.getConversation(db, id);
+    if (!conversation) return { ok: false, error: 'Conversation not found' };
+    return { ok: true, conversation };
+  } catch (e) {
+    log.error('Reflections conversation failed:', e.message);
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:reflections:conversations', (event, opts) => {
+  try {
+    const db = database.db();
+    const result = reflections.listConversations(db, opts);
+    return { ok: true, ...result };
+  } catch (e) {
+    log.error('Reflections conversations list failed:', e.message);
+    return { ok: false, error: e.message, conversations: [], total: 0 };
+  }
+});
+
+ipcMain.handle('guardian:reflections:stats', () => {
+  try {
+    const db = database.db();
+    const stats = reflections.getStats(db);
+    return { ok: true, stats };
+  } catch (e) {
+    log.error('Reflections stats failed:', e.message);
+    return { ok: false, error: e.message, stats: null };
+  }
+});
+
+ipcMain.handle('guardian:reflections:semantic', (event, opts) => {
+  try {
+    const db = database.db();
+    const results = reflections.semanticSearch(db, opts);
+    return { ok: true, results };
+  } catch (e) {
+    return { ok: false, error: e.message, results: [] };
+  }
+});
+
+ipcMain.handle('guardian:reflections:embed', () => {
+  try {
+    const db = database.db();
+    reflections.embedAll(db, {
+      onProgress: (progress) => send('guardian:reflections:embedProgress', progress),
+    });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:reflections:analyze', (event, opts) => {
+  try {
+    const db = database.db();
+    const result = reflections.analyze(db, opts);
+    return { ok: true, result };
+  } catch (e) {
+    return { ok: false, error: e.message };
   }
 });
 

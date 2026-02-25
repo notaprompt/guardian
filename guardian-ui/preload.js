@@ -315,6 +315,28 @@ contextBridge.exposeInMainWorld('guardian', {
     timeline: (weeks) => ipcRenderer.invoke('guardian:dimensions:timeline', { weeks }),
   },
 
+  // ── Reflections (Self-Exploration) ─────────────────────
+  reflections: {
+    ingest: (zipPath) => ipcRenderer.invoke('guardian:reflections:ingest', { zipPath }),
+    search: (opts) => ipcRenderer.invoke('guardian:reflections:search', opts),
+    conversation: (id) => ipcRenderer.invoke('guardian:reflections:conversation', { id }),
+    conversations: (opts) => ipcRenderer.invoke('guardian:reflections:conversations', opts),
+    stats: () => ipcRenderer.invoke('guardian:reflections:stats'),
+    semantic: (opts) => ipcRenderer.invoke('guardian:reflections:semantic', opts),
+    embed: () => ipcRenderer.invoke('guardian:reflections:embed'),
+    analyze: (opts) => ipcRenderer.invoke('guardian:reflections:analyze', opts),
+    onImportProgress: (cb) => {
+      const handler = (_event, payload) => cb(payload);
+      ipcRenderer.on('guardian:reflections:importProgress', handler);
+      return () => ipcRenderer.removeListener('guardian:reflections:importProgress', handler);
+    },
+    onEmbedProgress: (cb) => {
+      const handler = (_event, payload) => cb(payload);
+      ipcRenderer.on('guardian:reflections:embedProgress', handler);
+      return () => ipcRenderer.removeListener('guardian:reflections:embedProgress', handler);
+    },
+  },
+
   // ── Performance Profiling ────────────────────────────
   perf: {
     snapshot: () => ipcRenderer.invoke('guardian:perf:snapshot'),
