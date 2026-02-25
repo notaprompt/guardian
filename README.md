@@ -2,7 +2,7 @@
 
 **A cognitive operating system for people who think in layers.**
 
-24,000+ lines. 20 backend modules. Four integrated workspace panels. Intent-based model routing across local and cloud providers. Runs fully air-gapped or scales through APIs.
+31,700+ lines. 24 backend modules. 30 React components. Intent-based model routing across local and cloud providers. Runs fully air-gapped or scales through APIs.
 
 <!-- ![Guardian](docs/screenshot.png) -->
 
@@ -30,6 +30,8 @@ Guardian remembers. Not just what you said, but what you *meant*. Not just facts
 
 **Semantic navigation.** Find what you need by what it *means*, not what you called it three months ago.
 
+**Reflections.** Import your Claude and ChatGPT conversation history. Search by words, meaning, or open-ended inquiry. Your past thinking becomes navigable infrastructure.
+
 **Context preservation.** Jump between projects without losing your train of thought. Guardian holds the threads.
 
 **Integration queue.** When information conflicts, Guardian doesn't overwrite. It asks. You decide. You stay sovereign.
@@ -38,11 +40,62 @@ Guardian remembers. Not just what you said, but what you *meant*. Not just facts
 
 ## How it works
 
+```mermaid
+graph LR
+    subgraph Renderer["Renderer (React + Zustand)"]
+        Panels[Panels + Sidebar Tabs]
+        Terminal[Terminal<br/>dock / float]
+    end
+
+    subgraph Bridge
+        Preload[preload.js<br/>IPC channels]
+    end
+
+    subgraph Main["Main Process (Electron)"]
+        IPC[IPC Handlers]
+        PTY[node-pty<br/>Terminal Sessions]
+        FF[ForgeFrame<br/>LLM Router]
+    end
+
+    subgraph Backend["Backend (lib/)"]
+        DB[(SQLite + FTS5)]
+        Providers[LLM Providers]
+        Memory[Memory Engine]
+        Reflections[Reflections<br/>Pipeline]
+        KG[Knowledge Graph]
+    end
+
+    Panels <--> Preload
+    Terminal <--> Preload
+    Preload <--> IPC
+    IPC --> PTY
+    IPC --> FF
+    FF --> Providers
+    IPC --> DB
+    IPC --> Memory
+    IPC --> Reflections
+    IPC --> KG
+    Reflections --> DB
+    Memory --> DB
+    KG --> DB
+```
+
 Guardian sits between you and AI. Every conversation flows through it. Every insight gets remembered. Every pattern gets recognized.
 
-It uses semantic memory (vectors for machines) and symbolic architecture (meaning for humans). Local-first, privacy-preserving, yours.
+After each AI response, a sequential pipeline enriches the memory layer:
 
-Think of it as the cognitive layer that should have always existed between your brain and your tools.
+```mermaid
+graph LR
+    A[Chat Response] --> B[Awareness]
+    B --> C[Summarize]
+    C --> D[Embeddings]
+    D --> E[Knowledge Graph]
+    E --> F[Librarian]
+```
+
+Each stage reads from and writes to the same SQLite database. Sequential execution avoids concurrent write contention.
+
+It uses semantic memory (vectors for machines) and symbolic architecture (meaning for humans). Local-first, privacy-preserving, yours.
 
 ---
 
@@ -78,9 +131,31 @@ It's infrastructure. The kind you don't notice until it's gone.
 
 **Knowledge graph** -- Post-conversation pipeline extracts entities and relationships with semantic indexing. Unstructured dialogue becomes a searchable graph automatically.
 
+**Reflections** -- Import and search your Claude and ChatGPT conversation archives. Full-text search, semantic similarity, and open-ended inquiry across your entire history. Your past thinking becomes a navigable, searchable layer.
+
 **Quality assurance** -- Classifies AI responses to detect unintended reframing of user intent. Triggers corrections in real time when accuracy degrades past threshold.
 
 **Awareness detection** -- Identifies recurring unresolved topics across sessions. Flags patterns you keep circling back to but haven't resolved.
+
+**Sidebar architecture** -- Seven lazy-loaded panel tabs behind an activity bar: sessions, search, queue, memory, reflections, knowledge graph, and notes. Each panel is self-contained with independent state.
+
+**Terminal** -- Real PTY via node-pty and xterm.js. Docks inline as a resizable Allotment panel or floats as a draggable window. DOM persistence across transitions means xterm instances never unmount.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Floating: open terminal
+    Floating --> Docked: drag to left edge
+    Docked --> Floating: click undock
+    Floating --> [*]: close
+
+    state Floating {
+        [*] --> Normal
+        Normal --> Minimized: minimize
+        Minimized --> Normal: restore
+        Normal --> Maximized: double-click titlebar
+        Maximized --> Normal: double-click titlebar
+    }
+```
 
 ---
 
@@ -88,23 +163,19 @@ It's infrastructure. The kind you don't notice until it's gone.
 
 In active development. Used daily by its creator. Built for regulated environments where privacy isn't optional.
 
+| Layer | Files | LOC |
+|-------|------:|----:|
+| Backend (`lib/`) | 24 | ~8,300 |
+| Frontend (`src/`) | 45 | ~14,200 |
+| Main process | 2 | ~3,000 |
+| Styles | 12 | ~6,200 |
+| **Total** | **83** | **~31,700** |
+
 Early. Rough. Real.
 
 ---
 
-## The vision
-
-A world where your tools remember what you've already figured out. Where context doesn't evaporate between conversations. Where AI augments your thinking without owning it.
-
-Where you can trace every thought back to its origin. Where conflicting information doesn't get silently overwritten. Where your cognitive infrastructure belongs to you.
-
-Guardian is the beginning of that.
-
----
-
 ## For developers
-
-If you're building on Guardian or curious about the architecture:
 
 **Core principles:**
 - Local-first (cloud optional, not required)
@@ -119,11 +190,19 @@ If you're building on Guardian or curious about the architecture:
 | Runtime | Electron 33 + Node.js |
 | Frontend | React 18 + Vite |
 | State | Zustand |
-| Database | SQLite + FTS5 full-text search |
+| Database | SQLite + FTS5 full-text search (better-sqlite3) |
 | Terminal | xterm.js + node-pty (real PTY, not emulated) |
 | LLM providers | Claude, OpenAI, Ollama (local), Fireworks, Moonshot |
 | Model routing | ForgeFrame -- intent-based selection by complexity tier |
 | Visualization | d3-force knowledge graph, Canvas rendering |
+
+**Repository structure:**
+
+```
+guardian-ui-scaffold/
+├── guardian-ui/        # Electron app (see guardian-ui/README.md for full file tree)
+└── guardian-landing/   # Static landing page (Vercel-ready)
+```
 
 **Getting started:**
 
