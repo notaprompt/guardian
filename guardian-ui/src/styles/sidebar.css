@@ -1,0 +1,142 @@
+/* ── Sidebar Container ─────────────────────────────────────── */
+
+.sidebar-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+}
+
+.sidebar-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-container--collapsed .sidebar-content {
+  width: 0;
+  flex: 0;
+  overflow: hidden;
+}
+
+/* ── Activity Bar ──────────────────────────────────────────── */
+
+.activity-bar {
+  width: 44px;
+  min-width: 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--depth-1);
+  border-left: 1px solid var(--white-04);
+  padding: 8px 0;
+  z-index: 5;
+}
+
+.activity-bar__top,
+.activity-bar__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.activity-bar__btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--white-45);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+}
+
+.activity-bar__btn:hover {
+  background: var(--white-04);
+  color: var(--white-70);
+}
+
+.activity-bar__btn--active {
+  color: var(--glow);
+  box-shadow: inset 2px 0 0 0 var(--glow);
+}
+
+.activity-bar__btn--active:hover {
+  color: var(--glow);
+}
+
+.activity-bar__btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Tooltips ──────────────────────────────────────────────── */
+
+.activity-bar__btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--depth-3);
+  color: var(--white-90);
+  font-size: 11px;
+  font-family: var(--display);
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 100;
+}
+
+.activity-bar__btn[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+
+.activity-bar__badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--glow);
+  color: var(--void);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+/* ── Sidebar Loading State ─────────────────────────────────── */
+
+.sidebar-loading {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--white-30);
+  gap: 8px;
+}
+
+.sidebar-loading__icon {
+  font-size: 20px;
+  animation: pulse 1.5s infinite;
+}

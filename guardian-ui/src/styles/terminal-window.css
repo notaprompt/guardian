@@ -1,0 +1,155 @@
+/* ── Floating Terminal Window ──────────────────────────────── */
+
+.terminal-window-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 150;
+}
+
+.terminal-window {
+  position: absolute;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--depth-1);
+  border: 1px solid var(--glow-trace);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 1px rgba(232,220,200,0.08);
+  min-width: 320px;
+  min-height: 200px;
+  overflow: hidden;
+  resize: both;
+}
+
+/* ── Title Bar ────────────────────────────────────────────── */
+
+.terminal-window__titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 10px;
+  background: var(--depth-2);
+  border-bottom: 1px solid var(--glow-trace);
+  cursor: grab;
+  user-select: none;
+  -webkit-app-region: no-drag;
+}
+
+.terminal-window__titlebar:active {
+  cursor: grabbing;
+}
+
+.terminal-window__title-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--white-45);
+  letter-spacing: 0.04em;
+}
+
+.terminal-window__controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.terminal-window__control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--white-45);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.terminal-window__control-btn:hover {
+  background: var(--white-08);
+  color: var(--white-70);
+}
+
+.terminal-window__control-btn--close:hover {
+  background: rgba(220, 60, 60, 0.6);
+  color: #fff;
+}
+
+/* ── Body ─────────────────────────────────────────────────── */
+
+.terminal-window__body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Minimized State ──────────────────────────────────────── */
+
+.terminal-window--minimized {
+  resize: none;
+  width: 260px !important;
+  height: auto !important;
+  bottom: 8px !important;
+  left: 52px !important;
+  top: auto !important;
+  right: auto !important;
+}
+
+.terminal-window--minimized .terminal-window__body {
+  display: none;
+}
+
+.terminal-window--minimized .terminal-window__titlebar {
+  cursor: pointer;
+}
+
+/* ── Maximized State ──────────────────────────────────────── */
+
+.terminal-window--maximized {
+  resize: none;
+  top: 40px !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 28px !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 0;
+}
+
+/* ── Persistent Terminal Host ────────────────────────────── */
+
+.terminal-host {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Dock Zone Indicator ─────────────────────────────────── */
+
+.terminal-dock-indicator {
+  position: fixed;
+  left: 0;
+  top: 40px;
+  bottom: 28px;
+  width: 6px;
+  background: var(--glow-pulse);
+  border-right: 2px solid var(--glow);
+  pointer-events: none;
+  z-index: 151;
+  animation: dock-pulse 1s ease-in-out infinite;
+}
+
+@keyframes dock-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
