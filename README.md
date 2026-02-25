@@ -161,7 +161,7 @@ stateDiagram-v2
 
 ## Current state
 
-In active development. Used daily by its creator. Built for regulated environments where privacy isn't optional.
+In active development. Used daily by its creator. Built because every mind deserves a guardian.
 
 | Layer | Files | LOC |
 |-------|------:|----:|
@@ -181,7 +181,7 @@ Early. Rough. Real.
 - Local-first (cloud optional, not required)
 - User sovereignty (you own your data, your context, your decisions)
 - Semantic + symbolic (vectors for retrieval, symbols for reasoning)
-- Privacy-preserving (designed for regulated environments)
+- Privacy-preserving (local-first by default)
 
 **Stack:**
 

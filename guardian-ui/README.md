@@ -260,7 +260,7 @@ guardian-ui/
 
 ## Current state
 
-In development. Local-first architecture. Built for regulated environments where privacy isn't optional.
+In development. Local-first architecture. Built because every mind deserves a guardian.
 
 - Sidebar architecture with activity bar and 7 lazy-loaded panel tabs
 - Reflections pipeline: import, FTS search, multi-mode exploration
