@@ -13,6 +13,16 @@ const log = require('./logger');
 
 let _db = null;
 
+// ── Shared Utilities ────────────────────────────────────────
+
+function generateId(prefix) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function buildFtsQuery(query) {
+  return query.replace(/['"]/g, '').split(/\s+/).map(w => `"${w}"`).join(' ');
+}
+
 // ── Initialization ───────────────────────────────────────────
 
 function open() {
@@ -160,14 +170,58 @@ function _createSchema() {
       content, thinking, content=messages, content_rowid=rowid
     );
 
+    CREATE TRIGGER IF NOT EXISTS messages_fts_insert
+      AFTER INSERT ON messages BEGIN
+      INSERT INTO messages_fts(rowid, content, thinking)
+        VALUES (new.rowid, new.content, new.thinking);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS messages_fts_delete
+      AFTER DELETE ON messages BEGIN
+      INSERT INTO messages_fts(messages_fts, rowid, content, thinking)
+        VALUES ('delete', old.rowid, old.content, old.thinking);
+    END;
+
     CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5(
       title, content, content=notes, content_rowid=rowid
     );
+
+    CREATE TRIGGER IF NOT EXISTS notes_fts_insert
+      AFTER INSERT ON notes BEGIN
+      INSERT INTO notes_fts(rowid, title, content)
+        VALUES (new.rowid, new.title, new.content);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS notes_fts_delete
+      AFTER DELETE ON notes BEGIN
+      INSERT INTO notes_fts(notes_fts, rowid, title, content)
+        VALUES ('delete', old.rowid, old.title, old.content);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS notes_fts_update
+      AFTER UPDATE OF title, content ON notes BEGIN
+      INSERT INTO notes_fts(notes_fts, rowid, title, content)
+        VALUES ('delete', old.rowid, old.title, old.content);
+      INSERT INTO notes_fts(rowid, title, content)
+        VALUES (new.rowid, new.title, new.content);
+    END;
 
     -- Session summaries full-text search
     CREATE VIRTUAL TABLE IF NOT EXISTS sessions_fts USING fts5(
       title, summary, content=sessions, content_rowid=rowid
     );
+
+    CREATE TRIGGER IF NOT EXISTS sessions_fts_insert
+      AFTER INSERT ON sessions BEGIN
+      INSERT INTO sessions_fts(rowid, title, summary)
+        VALUES (new.rowid, new.title, new.summary);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS sessions_fts_delete
+      AFTER DELETE ON sessions BEGIN
+      INSERT INTO sessions_fts(sessions_fts, rowid, title, summary)
+        VALUES ('delete', old.rowid, old.title, old.summary);
+    END;
 
     -- Compression levels (hierarchical memory)
     CREATE TABLE IF NOT EXISTS compression_levels (
@@ -185,7 +239,21 @@ function _createSchema() {
     CREATE INDEX IF NOT EXISTS idx_compression_status ON compression_levels(status);
 
     -- FTS for compression memory
-    CREATE VIRTUAL TABLE IF NOT EXISTS compression_fts USING fts5(content);
+    CREATE VIRTUAL TABLE IF NOT EXISTS compression_fts USING fts5(
+      content, content=compression_levels, content_rowid=rowid
+    );
+
+    CREATE TRIGGER IF NOT EXISTS compression_fts_insert
+      AFTER INSERT ON compression_levels BEGIN
+      INSERT INTO compression_fts(rowid, content)
+        VALUES (new.rowid, new.content);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS compression_fts_delete
+      AFTER DELETE ON compression_levels BEGIN
+      INSERT INTO compression_fts(compression_fts, rowid, content)
+        VALUES ('delete', old.rowid, old.content);
+    END;
 
     -- Reframe events (Perlocutionary Audit)
     CREATE TABLE IF NOT EXISTS reframe_events (
@@ -291,6 +359,66 @@ function _createSchema() {
     log.warn('Librarian/providers schema init failed:', e.message);
   }
 
+  // Reflections tables (imported conversation history for self-exploration)
+  try {
+    _db.exec(`
+      CREATE TABLE IF NOT EXISTS reflection_conversations (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL DEFAULT 'Untitled',
+        source_file TEXT,
+        created_at TEXT NOT NULL,
+        message_count INTEGER DEFAULT 0,
+        human_count INTEGER DEFAULT 0,
+        imported_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS reflection_messages (
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL
+          REFERENCES reflection_conversations(id) ON DELETE CASCADE,
+        sender TEXT NOT NULL,
+        text TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        seq INTEGER NOT NULL,
+        UNIQUE(conversation_id, seq)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ref_msg_convo
+        ON reflection_messages(conversation_id, seq);
+      CREATE INDEX IF NOT EXISTS idx_ref_msg_sender
+        ON reflection_messages(sender);
+      CREATE INDEX IF NOT EXISTS idx_ref_msg_date
+        ON reflection_messages(created_at);
+
+      CREATE VIRTUAL TABLE IF NOT EXISTS reflection_messages_fts USING fts5(
+        text,
+        content='reflection_messages',
+        content_rowid='rowid',
+        tokenize='porter unicode61'
+      );
+
+      CREATE TRIGGER IF NOT EXISTS ref_msg_fts_insert
+        AFTER INSERT ON reflection_messages BEGIN
+        INSERT INTO reflection_messages_fts(rowid, text)
+          VALUES (new.rowid, new.text);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS ref_msg_fts_delete
+        AFTER DELETE ON reflection_messages BEGIN
+        INSERT INTO reflection_messages_fts(reflection_messages_fts, rowid, text)
+          VALUES ('delete', old.rowid, old.text);
+      END;
+
+      CREATE TABLE IF NOT EXISTS reflection_embeddings (
+        message_id TEXT PRIMARY KEY
+          REFERENCES reflection_messages(id) ON DELETE CASCADE,
+        vector BLOB NOT NULL
+      );
+    `);
+  } catch (e) {
+    log.warn('Reflections schema init failed:', e.message);
+  }
+
   // Import batch tracking table
   try {
     _db.exec(`
@@ -330,6 +458,44 @@ function _createSchema() {
   log.info('Database schema ready');
 }
 
+// ── Column Whitelists ────────────────────────────────────────
+
+const VALID_COLUMNS = {
+  sessions: new Set([
+    'id', 'project_id', 'claude_session_id', 'title', 'summary', 'model',
+    'started_at', 'ended_at', 'tokens_in', 'tokens_out',
+    'provider', 'extraction_status', 'source', 'import_batch_id', 'original_id', 'message_count',
+  ]),
+  messages: new Set([
+    'id', 'session_id', 'role', 'content', 'thinking', 'attachments',
+    'tokens_in', 'tokens_out', 'timestamp',
+  ]),
+  compression_levels: new Set([
+    'id', 'level', 'content', 'source_ids', 'entity_links',
+    'strength', 'status', 'created_at', 'updated_at',
+  ]),
+  providers: new Set([
+    'id', 'name', 'type', 'enabled', 'base_url', 'created_at', 'updated_at',
+  ]),
+  import_batches: new Set([
+    'id', 'source', 'file_name', 'file_size', 'status',
+    'total_conversations', 'imported_conversations', 'skipped_conversations',
+    'error_message', 'started_at', 'completed_at',
+  ]),
+};
+
+function filterColumns(table, updates) {
+  const whitelist = VALID_COLUMNS[table];
+  const filtered = {};
+  for (const [key, val] of Object.entries(updates)) {
+    const col = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    if (whitelist.has(col)) {
+      filtered[col] = val;
+    }
+  }
+  return filtered;
+}
+
 // ── Sessions ─────────────────────────────────────────────────
 
 const sessions = {
@@ -349,11 +515,10 @@ const sessions = {
   },
 
   update(id, updates) {
+    const cols = filterColumns('sessions', updates);
     const fields = [];
     const values = [];
-    for (const [key, val] of Object.entries(updates)) {
-      // Map camelCase to snake_case
-      const col = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    for (const [col, val] of Object.entries(cols)) {
       fields.push(`${col} = ?`);
       values.push(val);
     }
@@ -403,17 +568,6 @@ const sessions = {
 
   updateSummary(id, summary) {
     db().prepare('UPDATE sessions SET summary = ? WHERE id = ?').run(summary, id);
-    // Update FTS index
-    try {
-      const session = db().prepare('SELECT rowid, title FROM sessions WHERE id = ?').get(id);
-      if (session) {
-        // Delete old FTS entry then insert new one
-        try { db().prepare('DELETE FROM sessions_fts WHERE rowid = ?').run(session.rowid); } catch (_) {}
-        db().prepare(
-          'INSERT INTO sessions_fts(rowid, title, summary) VALUES (?, ?, ?)'
-        ).run(session.rowid, session.title || '', summary || '');
-      }
-    } catch (_) { /* FTS update best-effort */ }
   },
 };
 
@@ -436,22 +590,14 @@ const messages = {
       msg.timestamp || new Date().toISOString()
     );
 
-    // Update FTS
-    try {
-      db().prepare(`
-        INSERT INTO messages_fts(rowid, content, thinking)
-        VALUES ((SELECT rowid FROM messages WHERE id = ?), ?, ?)
-      `).run(msg.id, msg.content || '', msg.thinking || '');
-    } catch (_) { /* FTS insert best-effort */ }
-
     return msg.id;
   },
 
   update(id, updates) {
+    const cols = filterColumns('messages', updates);
     const fields = [];
     const values = [];
-    for (const [key, val] of Object.entries(updates)) {
-      const col = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    for (const [col, val] of Object.entries(cols)) {
       fields.push(`${col} = ?`);
       values.push(val);
     }
@@ -476,7 +622,7 @@ const messages = {
 const notes = {
   create(note) {
     const now = new Date().toISOString();
-    const id = note.id || Date.now().toString();
+    const id = note.id || generateId('note');
     db().prepare(`
       INSERT INTO notes (id, type, title, content, color, project_id, tags, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -490,13 +636,6 @@ const notes = {
       JSON.stringify(note.tags || []),
       now, now
     );
-
-    try {
-      db().prepare(`
-        INSERT INTO notes_fts(rowid, title, content)
-        VALUES ((SELECT rowid FROM notes WHERE id = ?), ?, ?)
-      `).run(id, note.title || '', note.content || '');
-    } catch (_) {}
 
     return id;
   },
@@ -554,7 +693,7 @@ const notes = {
 
   // Save a version snapshot of the current note content
   saveVersion(noteId, content) {
-    const versionId = `nv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const versionId = generateId('nv');
     db().prepare(`
       INSERT INTO note_versions (id, note_id, content, created_at)
       VALUES (?, ?, ?, ?)
@@ -629,7 +768,7 @@ const usage = {
 
 const queue = {
   add(item) {
-    const id = item.id || Date.now().toString();
+    const id = item.id || generateId('qi');
     db().prepare(`
       INSERT INTO queue_items (id, text, source_session_id, source_message_id, status, priority, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -696,7 +835,7 @@ const queue = {
 
 const compression = {
   create(item) {
-    const id = item.id || `cl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = item.id || generateId('cl');
     const now = new Date().toISOString();
     db().prepare(`
       INSERT INTO compression_levels (id, level, content, source_ids, entity_links, strength, status, created_at, updated_at)
@@ -711,18 +850,14 @@ const compression = {
       item.status || 'active',
       now, now
     );
-    // Update FTS
-    try {
-      db().prepare('INSERT INTO compression_fts(rowid, content) VALUES ((SELECT rowid FROM compression_levels WHERE id = ?), ?)').run(id, item.content);
-    } catch (_) {}
     return id;
   },
 
   update(id, updates) {
+    const cols = filterColumns('compression_levels', updates);
     const fields = [];
     const values = [];
-    for (const [key, val] of Object.entries(updates)) {
-      const col = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    for (const [col, val] of Object.entries(cols)) {
       fields.push(`${col} = ?`);
       values.push(typeof val === 'object' ? JSON.stringify(val) : val);
     }
@@ -788,7 +923,7 @@ const compression = {
 
   search(query) {
     if (!query || !query.trim()) return [];
-    const ftsQuery = query.replace(/['"]/g, '').split(/\s+/).map(w => `"${w}"`).join(' ');
+    const ftsQuery = buildFtsQuery(query);
     try {
       return db().prepare(`
         SELECT cl.*
@@ -822,7 +957,7 @@ const compression = {
 
 function search(query, opts = {}) {
   const results = [];
-  const ftsQuery = query.replace(/['"]/g, '').split(/\s+/).map(w => `"${w}"`).join(' ');
+  const ftsQuery = buildFtsQuery(query);
 
   if (!opts.scope || opts.scope === 'all' || opts.scope === 'conversations') {
     try {
@@ -939,7 +1074,7 @@ function migrateFromJSON(projectDir) {
 
 const noteSources = {
   create(source) {
-    const id = source.id || `ns_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = source.id || generateId('ns');
     db().prepare(`
       INSERT INTO note_sources (id, note_id, session_id, message_id, extraction_type, confidence, auto_generated, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -973,7 +1108,7 @@ const noteSources = {
 
 const entityNotes = {
   link(entityId, noteId, relevance) {
-    const id = `en_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = generateId('en');
     db().prepare(`
       INSERT INTO entity_notes (id, entity_id, note_id, relevance, created_at)
       VALUES (?, ?, ?, ?, ?)
@@ -1002,7 +1137,7 @@ const entityNotes = {
 
 const providerStore = {
   create(provider) {
-    const id = provider.id || `prov_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = provider.id || generateId('prov');
     const now = new Date().toISOString();
     db().prepare(`
       INSERT INTO providers (id, name, type, enabled, base_url, created_at, updated_at)
@@ -1027,10 +1162,10 @@ const providerStore = {
   },
 
   update(id, updates) {
+    const cols = filterColumns('providers', updates);
     const fields = [];
     const values = [];
-    for (const [key, val] of Object.entries(updates)) {
-      const col = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    for (const [col, val] of Object.entries(cols)) {
       fields.push(`${col} = ?`);
       values.push(val);
     }
@@ -1047,7 +1182,7 @@ const providerStore = {
   },
 
   addModel(model) {
-    const id = model.id || `pm_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = model.id || generateId('pm');
     db().prepare(`
       INSERT INTO provider_models (id, provider_id, model_id, label, description, tier, max_tokens, supports_streaming, supports_thinking, enabled)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -1186,7 +1321,7 @@ const reframe = {
 
 const importBatches = {
   create(batch) {
-    const id = batch.id || `ib_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = batch.id || generateId('ib');
     db().prepare(`
       INSERT INTO import_batches (id, source, file_name, file_size, status, total_conversations, started_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -1203,10 +1338,10 @@ const importBatches = {
   },
 
   update(id, updates) {
+    const cols = filterColumns('import_batches', updates);
     const fields = [];
     const values = [];
-    for (const [key, val] of Object.entries(updates)) {
-      const col = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    for (const [col, val] of Object.entries(cols)) {
       fields.push(`${col} = ?`);
       values.push(val);
     }
@@ -1224,4 +1359,45 @@ const importBatches = {
   },
 };
 
-module.exports = { open, close, db, sessions, messages, notes, usage, queue, compression, search, migrateFromJSON, noteSources, entityNotes, providerStore, reframe, importBatches };
+// ── Reflections ──────────────────────────────────────────────
+
+const reflections = {
+  conversations: {
+    get(id) {
+      return db().prepare('SELECT * FROM reflection_conversations WHERE id = ?').get(id);
+    },
+    list(opts = {}) {
+      let sql = 'SELECT * FROM reflection_conversations';
+      const params = [];
+      if (opts.search) {
+        sql += ' WHERE title LIKE ?';
+        params.push(`%${opts.search}%`);
+      }
+      sql += ' ORDER BY created_at DESC';
+      if (opts.limit) { sql += ' LIMIT ?'; params.push(opts.limit); }
+      if (opts.offset) { sql += ' OFFSET ?'; params.push(opts.offset); }
+      return db().prepare(sql).all(...params);
+    },
+    count() {
+      return db().prepare('SELECT COUNT(*) as c FROM reflection_conversations').get().c;
+    },
+  },
+  messages: {
+    listByConversation(conversationId) {
+      return db().prepare(
+        'SELECT * FROM reflection_messages WHERE conversation_id = ? ORDER BY seq ASC'
+      ).all(conversationId);
+    },
+  },
+};
+
+// ── FTS Rebuild ──────────────────────────────────────────────
+
+function rebuildFTS() {
+  const tables = ['messages_fts', 'notes_fts', 'sessions_fts', 'compression_fts', 'reflection_messages_fts'];
+  for (const t of tables) {
+    _db.prepare(`INSERT INTO ${t}(${t}) VALUES('rebuild')`).run();
+  }
+}
+
+module.exports = { open, close, db, sessions, messages, notes, usage, queue, compression, search, migrateFromJSON, noteSources, entityNotes, providerStore, reframe, importBatches, reflections, rebuildFTS, generateId, buildFtsQuery };

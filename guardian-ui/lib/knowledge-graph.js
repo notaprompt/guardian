@@ -7,18 +7,10 @@
  */
 
 const { spawn } = require('child_process');
-const path = require('path');
 const os = require('os');
-const fs = require('fs');
 const log = require('./logger');
-
-// ── Claude CLI path resolution (mirrors main.js) ──────────────
-
-function getClaudePath() {
-  const localBin = path.join(os.homedir(), '.local', 'bin', 'claude.exe');
-  if (fs.existsSync(localBin)) return localBin;
-  return 'claude';
-}
+const { getClaudePath, cliEnv } = require('./claude-cli');
+const { generateId } = require('./database');
 
 // ── Entity Extraction ──────────────────────────────────────────
 
@@ -68,11 +60,7 @@ Rules:
   try {
     proc = spawn(claudePath, args, {
       cwd: os.homedir(),
-      env: {
-        ...process.env,
-        Path: path.join(os.homedir(), '.local', 'bin') + (process.platform === 'win32' ? ';' : ':') + (process.env.Path || process.env.PATH || ''),
-        PATH: path.join(os.homedir(), '.local', 'bin') + (process.platform === 'win32' ? ';' : ':') + (process.env.Path || process.env.PATH || ''),
-      },
+      env: cliEnv,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
   } catch (e) {
@@ -176,7 +164,7 @@ function upsertEntity(db, entity) {
  * Insert a relationship between two entities.
  */
 function addRelationship(db, sourceId, targetId, type, sessionId) {
-  const id = `r_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const id = generateId('r');
   const now = new Date().toISOString();
 
   // Avoid duplicate relationships in the same session

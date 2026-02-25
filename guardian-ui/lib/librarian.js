@@ -14,30 +14,10 @@ const os = require('os');
 const fs = require('fs');
 const log = require('./logger');
 const { DIRS } = require('./paths');
-
-// ── Claude CLI resolution (mirrors summarizer.js / knowledge-graph.js) ──
-
-function getClaudePath() {
-  const localBin = path.join(os.homedir(), '.local', 'bin', 'claude.exe');
-  if (fs.existsSync(localBin)) return localBin;
-  return 'claude';
-}
-
-const claudeBinDir = path.join(os.homedir(), '.local', 'bin');
-const sep = process.platform === 'win32' ? ';' : ':';
-const currentPath = process.env.Path || process.env.PATH || '';
-const newPath = claudeBinDir + sep + currentPath;
-const cliEnv = {
-  ...process.env,
-  Path: newPath,
-  PATH: newPath,
-};
+const { getClaudePath, cliEnv } = require('./claude-cli');
+const { generateId } = require('./database');
 
 // ── Helpers ─────────────────────────────────────────────────────
-
-function makeId(prefix) {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
 
 function todayDateStr() {
   return new Date().toISOString().slice(0, 10);
@@ -190,7 +170,7 @@ function createAutoNotes(db, sessionId, insights) {
 
   // Decisions -> structured notes
   for (const decision of insights.decisions) {
-    const id = makeId('n');
+    const id = generateId('n');
     const content = `**Decision:** ${decision.topic}\n\n**Rationale:** ${decision.rationale || 'Not specified'}`;
     db.notes.create({
       id,
@@ -205,14 +185,14 @@ function createAutoNotes(db, sessionId, insights) {
         .run(sessionId, id);
     } catch (_) {}
     try {
-      insertNoteSource.run(makeId('ns'), id, sessionId, 'decision', now);
+      insertNoteSource.run(generateId('ns'), id, sessionId, 'decision', now);
     } catch (_) {}
     noteIds.push(id);
   }
 
   // Tasks -> structured notes
   for (const task of insights.tasks) {
-    const id = makeId('n');
+    const id = generateId('n');
     const priority = task.priority || 'medium';
     const content = `**Task:** ${task.description}\n\n**Priority:** ${priority}`;
     db.notes.create({
@@ -227,14 +207,14 @@ function createAutoNotes(db, sessionId, insights) {
         .run(sessionId, id);
     } catch (_) {}
     try {
-      insertNoteSource.run(makeId('ns'), id, sessionId, 'task', now);
+      insertNoteSource.run(generateId('ns'), id, sessionId, 'task', now);
     } catch (_) {}
     noteIds.push(id);
   }
 
   // Key insights -> scratch notes
   for (const insight of insights.keyInsights) {
-    const id = makeId('n');
+    const id = generateId('n');
     const category = insight.category || 'general';
     const content = `${insight.text}`;
     db.notes.create({
@@ -249,14 +229,14 @@ function createAutoNotes(db, sessionId, insights) {
         .run(sessionId, id);
     } catch (_) {}
     try {
-      insertNoteSource.run(makeId('ns'), id, sessionId, 'insight', now);
+      insertNoteSource.run(generateId('ns'), id, sessionId, 'insight', now);
     } catch (_) {}
     noteIds.push(id);
   }
 
   // Questions -> scratch notes
   for (const question of insights.questions) {
-    const id = makeId('n');
+    const id = generateId('n');
     const content = `**Question:** ${question.text}\n\n**Context:** ${question.context || 'From conversation'}`;
     db.notes.create({
       id,
@@ -270,7 +250,7 @@ function createAutoNotes(db, sessionId, insights) {
         .run(sessionId, id);
     } catch (_) {}
     try {
-      insertNoteSource.run(makeId('ns'), id, sessionId, 'question', now);
+      insertNoteSource.run(generateId('ns'), id, sessionId, 'question', now);
     } catch (_) {}
     noteIds.push(id);
   }
@@ -292,7 +272,7 @@ function createAutoNotes(db, sessionId, insights) {
       db.notes.update(existingJournal.id, { content: appendedContent });
       noteIds.push(existingJournal.id);
     } else {
-      const id = makeId('n');
+      const id = generateId('n');
       const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
       db.notes.create({
         id,
@@ -306,7 +286,7 @@ function createAutoNotes(db, sessionId, insights) {
           .run(sessionId, id);
       } catch (_) {}
       try {
-        insertNoteSource.run(makeId('ns'), id, sessionId, 'daily-summary', now);
+        insertNoteSource.run(generateId('ns'), id, sessionId, 'daily-summary', now);
       } catch (_) {}
       noteIds.push(id);
     }
@@ -351,7 +331,7 @@ function fileArtifacts(sessionId, insights, db) {
     }
 
     // Record in artifacts table
-    const id = makeId('art');
+    const id = generateId('art');
     try {
       const rawDb = db.db();
       rawDb.prepare(`
@@ -426,13 +406,13 @@ function linkToGraph(db, sessionId, noteIds, artifactIds) {
     for (const entityId of entityIds) {
       for (const noteId of noteIds) {
         try {
-          insertEntityNote.run(makeId('en'), entityId, noteId, now);
+          insertEntityNote.run(generateId('en'), entityId, noteId, now);
           entitiesLinked++;
         } catch (_) {}
       }
       for (const artifactId of artifactIds) {
         try {
-          insertEntityArtifact.run(makeId('ea'), entityId, artifactId, now);
+          insertEntityArtifact.run(generateId('ea'), entityId, artifactId, now);
         } catch (_) {}
       }
     }

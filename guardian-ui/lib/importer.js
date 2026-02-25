@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const log = require('./logger');
 const backup = require('./backup');
+const { generateId } = require('./database');
 
 // ── YAML Frontmatter Parser ──────────────────────────────────
 
@@ -163,7 +164,7 @@ function importMarkdownFile(filePath) {
 
   const now = new Date().toISOString();
   const note = {
-    id: `import_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    id: generateId('import'),
     type,
     title,
     content,

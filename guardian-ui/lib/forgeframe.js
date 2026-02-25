@@ -24,6 +24,23 @@ exports.loadProviderModels = loadProviderModels;
 exports.getCheapestModel = getCheapestModel;
 const paths_1 = require("./paths");
 const log = require("./logger");
+// ── Settings cache (avoids reading settings.json on every call) ──
+let _settingsCache = null;
+let _settingsCacheTime = 0;
+const SETTINGS_CACHE_TTL = 30000; // 30 seconds
+function _getCachedSettings() {
+    const now = Date.now();
+    if (_settingsCache && (now - _settingsCacheTime) < SETTINGS_CACHE_TTL) {
+        return _settingsCache;
+    }
+    _settingsCache = (0, paths_1.readJSON)(paths_1.FILES.settings, {});
+    _settingsCacheTime = now;
+    return _settingsCache;
+}
+function _invalidateSettingsCache() {
+    _settingsCache = null;
+    _settingsCacheTime = 0;
+}
 // ── Default Models (Claude CLI) ─────────────────────────────────
 const DEFAULT_MODELS = [
     {
@@ -203,7 +220,7 @@ function resolveModel(message, override) {
         }
     }
     // Auto-route: check if auto-routing is enabled
-    const settings = (0, paths_1.readJSON)(paths_1.FILES.settings, {});
+    const settings = _getCachedSettings();
     const autoRoute = settings.forgeframe?.autoRoute !== false; // default: on
     if (autoRoute && override !== 'manual-lock') {
         const tier = detectIntent(message);
@@ -244,7 +261,7 @@ function getModels() {
  * Get the currently selected model from settings.
  */
 function getSelectedModel() {
-    const settings = (0, paths_1.readJSON)(paths_1.FILES.settings, {});
+    const settings = _getCachedSettings();
     return settings.forgeframe?.selectedModel || DEFAULT_MODEL;
 }
 /**
@@ -256,13 +273,14 @@ function setSelectedModel(modelId) {
         settings.forgeframe = {};
     settings.forgeframe.selectedModel = modelId;
     (0, paths_1.writeJSON)(paths_1.FILES.settings, settings);
+    _invalidateSettingsCache();
     log.info('ForgeFrame: model set to', modelId);
 }
 /**
  * Get auto-route enabled state.
  */
 function getAutoRoute() {
-    const settings = (0, paths_1.readJSON)(paths_1.FILES.settings, {});
+    const settings = _getCachedSettings();
     return settings.forgeframe?.autoRoute !== false;
 }
 /**
@@ -274,5 +292,6 @@ function setAutoRoute(enabled) {
         settings.forgeframe = {};
     settings.forgeframe.autoRoute = enabled;
     (0, paths_1.writeJSON)(paths_1.FILES.settings, settings);
+    _invalidateSettingsCache();
     log.info('ForgeFrame: auto-route', enabled ? 'enabled' : 'disabled');
 }

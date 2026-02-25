@@ -16,29 +16,11 @@
 
 const { spawn } = require('child_process');
 const { EventEmitter } = require('events');
-const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const log = require('./logger');
 const secureStore = require('./secure-store');
-
-// ── Claude CLI Resolution (mirrors main.js / summarizer.js) ──────
-
-function getClaudePath() {
-  const localBin = path.join(os.homedir(), '.local', 'bin', 'claude.exe');
-  if (fs.existsSync(localBin)) return localBin;
-  return 'claude';
-}
-
-const claudeBinDir = path.join(os.homedir(), '.local', 'bin');
-const sep = process.platform === 'win32' ? ';' : ':';
-const currentPath = process.env.Path || process.env.PATH || '';
-const newPath = claudeBinDir + sep + currentPath;
-const cliEnv = {
-  ...process.env,
-  Path: newPath,
-  PATH: newPath,
-};
+const { getClaudePath, cliEnv } = require('./claude-cli');
 
 // ══════════════════════════════════════════════════════════════════
 // SSE Stream Parser — shared async generator for all HTTP providers

@@ -15,6 +15,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const { DIRS } = require('./paths');
 const log = require('./logger');
+const { generateId } = require('./database');
 
 let _db = null;
 
@@ -123,7 +124,7 @@ function _flushBuffer(terminalId) {
       ? buf.chunks.slice(-MAX_OUTPUT_LENGTH)
       : buf.chunks;
 
-    const id = `tc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = generateId('tc');
     db().prepare(`
       INSERT INTO terminal_commands (id, terminal_id, input, output, cwd, timestamp)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -209,7 +210,7 @@ function removeTerminal(terminalId) {
  * Called via Ctrl+Shift+S from the renderer.
  */
 function saveSnapshot(terminalId, content) {
-  const id = `snap_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const id = generateId('snap');
   try {
     db().prepare(`
       INSERT INTO terminal_snapshots (id, terminal_id, content, timestamp)

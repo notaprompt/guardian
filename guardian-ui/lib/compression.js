@@ -1,32 +1,10 @@
 // Hierarchical memory compression.
 
 const { spawn } = require('child_process');
-const path = require('path');
 const os = require('os');
-const fs = require('fs');
 const log = require('./logger');
-
-// ── Claude CLI resolution ─────────────────────────────────────────
-
-function getClaudePath() {
-  const localBin = path.join(os.homedir(), '.local', 'bin', 'claude.exe');
-  if (fs.existsSync(localBin)) return localBin;
-  return 'claude';
-}
-
-const claudeBinDir = path.join(os.homedir(), '.local', 'bin');
-const sep = process.platform === 'win32' ? ';' : ':';
-const currentPath = process.env.Path || process.env.PATH || '';
-const newPath = claudeBinDir + sep + currentPath;
-const cliEnv = {
-  ...process.env,
-  Path: newPath,
-  PATH: newPath,
-};
-
-function makeId(prefix) {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
+const { getClaudePath, cliEnv } = require('./claude-cli');
+const { generateId } = require('./database');
 
 // ── L1: Register Summary ──────────────────────────────────────────
 
@@ -37,7 +15,7 @@ function makeId(prefix) {
 function registerL1(db, sessionId, summary) {
   if (!summary || !summary.trim()) return { id: null, shouldTriggerL2: false };
 
-  const id = makeId('cl');
+  const id = generateId('cl');
   db.compression.create({
     id,
     level: 1,
@@ -127,7 +105,7 @@ Rules:
       const created = [];
 
       for (const pattern of patterns) {
-        const id = makeId('cl');
+        const id = generateId('cl');
         const content = `${pattern.theme}${pattern.evidence ? '\n\nEvidence: ' + pattern.evidence : ''}${pattern.frequency ? '\n\nFrequency: ' + pattern.frequency : ''}`;
         db.compression.create({
           id,
@@ -223,7 +201,7 @@ Rules:
       const created = [];
 
       for (const principle of principles) {
-        const id = makeId('cl');
+        const id = generateId('cl');
         const content = `${principle.principle}${principle.reasoning ? '\n\nReasoning: ' + principle.reasoning : ''}`;
         db.compression.create({
           id,

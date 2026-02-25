@@ -114,13 +114,34 @@ function analyze(database, currentSessionId, opts = {}) {
     if (recentSessions.length < minSessions) return null;
 
     // 2. Build keyword profile per session (user messages only)
+    //    Single query fetches all user messages across relevant sessions
     const sessionKeywords = {};
     const sessionMeta = {};
 
-    for (const session of recentSessions) {
-      const messages = database.messages.listBySession(session.id);
-      const userMessages = messages.filter((m) => m.role === 'user');
-      if (userMessages.length === 0) continue;
+    const sessionIds = recentSessions.map((s) => s.id);
+    const placeholders = sessionIds.map(() => '?').join(',');
+    const allUserMessages = database.db().prepare(
+      `SELECT session_id, content FROM messages
+       WHERE session_id IN (${placeholders}) AND role = 'user'
+       ORDER BY session_id, timestamp ASC`
+    ).all(...sessionIds);
+
+    // Group messages by session
+    const messagesBySession = {};
+    for (const msg of allUserMessages) {
+      if (!messagesBySession[msg.session_id]) messagesBySession[msg.session_id] = [];
+      messagesBySession[msg.session_id].push(msg);
+    }
+
+    // Build session title lookup
+    const sessionTitleMap = {};
+    for (const s of recentSessions) {
+      sessionTitleMap[s.id] = { title: s.title, startedAt: s.started_at };
+    }
+
+    for (const sid of sessionIds) {
+      const userMessages = messagesBySession[sid];
+      if (!userMessages || userMessages.length === 0) continue;
 
       const allText = userMessages.map((m) => m.content || '').join(' ');
       const keywords = extractKeywords(allText);
@@ -130,7 +151,7 @@ function analyze(database, currentSessionId, opts = {}) {
       for (const kw of keywords) {
         freq[kw] = (freq[kw] || 0) + 1;
       }
-      sessionKeywords[session.id] = freq;
+      sessionKeywords[sid] = freq;
 
       // Check for meta-language and action patterns
       let metaCount = 0;
@@ -145,21 +166,22 @@ function analyze(database, currentSessionId, opts = {}) {
         }
       }
 
-      sessionMeta[session.id] = {
+      const info = sessionTitleMap[sid];
+      sessionMeta[sid] = {
         metaCount,
         actionCount,
-        title: session.title,
-        startedAt: session.started_at,
+        title: info.title,
+        startedAt: info.startedAt,
         messageCount: userMessages.length,
       };
     }
 
-    const sessionIds = Object.keys(sessionKeywords);
-    if (sessionIds.length < minSessions) return null;
+    const activeSessionIds = Object.keys(sessionKeywords);
+    if (activeSessionIds.length < minSessions) return null;
 
     // 3. Find recurring topics: keywords that appear in 3+ sessions
     const keywordToSessions = {};
-    for (const sid of sessionIds) {
+    for (const sid of activeSessionIds) {
       const topKw = Object.entries(sessionKeywords[sid])
         .sort((a, b) => b[1] - a[1])
         .slice(0, 20)
