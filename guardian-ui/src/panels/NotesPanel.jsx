@@ -2,9 +2,6 @@ import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import PanelHeader from '../components/PanelHeader';
 import useStore from '../store';
 
-const DimensionLandscape = React.lazy(() => import('../components/DimensionLandscape'));
-const DimensionDetail = React.lazy(() => import('../components/DimensionDetail'));
-
 // ── Note type definitions ─────────────────────────────────────
 const NOTE_TYPES = [
   { id: 'all',        label: 'All' },
@@ -12,7 +9,6 @@ const NOTE_TYPES = [
   { id: 'structured', label: 'Structured' },
   { id: 'journal',    label: 'Journal' },
   { id: 'auto',       label: 'Auto' },
-  { id: 'memory',     label: 'Memory' },
 ];
 
 function formatTimestamp(iso) {
@@ -74,208 +70,6 @@ function VersionHistory({ noteId }) {
           </button>
         </div>
       ))}
-    </div>
-  );
-}
-
-// ── Memory Layers (Hierarchical Compression) ────────────────
-function MemoryLayers() {
-  const compressionL2 = useStore((s) => s.compressionL2);
-  const compressionL3 = useStore((s) => s.compressionL3);
-  const fetchCompression = useStore((s) => s.fetchCompression);
-  const updateCompressionItem = useStore((s) => s.updateCompressionItem);
-  const runCompression = useStore((s) => s.runCompression);
-
-  useEffect(() => {
-    fetchCompression();
-  }, [fetchCompression]);
-
-  return (
-    <div className="memory-layers">
-      {/* Depth indicator */}
-      <div className="memory-layers__depth">
-        {compressionL3.length} principle{compressionL3.length !== 1 ? 's' : ''} | {compressionL2.length} pattern{compressionL2.length !== 1 ? 's' : ''}
-      </div>
-
-      {/* L3 Principles */}
-      <div className="memory-layers__section">
-        <div className="memory-layers__section-header">
-          <span className="memory-layers__section-title">
-            <span className="memory-layers__level-badge memory-layers__level-badge--l3">L3</span>
-            {' '}Principles
-          </span>
-          <button
-            className="memory-layers__section-btn"
-            onClick={() => runCompression(3)}
-            title="Distill principles from patterns"
-          >
-            distill
-          </button>
-        </div>
-        {compressionL3.length === 0 && (
-          <div className="memory-layers__empty">
-            No principles yet. Need 3+ patterns to distill.
-          </div>
-        )}
-        {compressionL3.map((item) => (
-          <div
-            key={item.id}
-            className="memory-layers__item"
-            style={{ opacity: Math.max(0.3, item.strength || 1) }}
-          >
-            <div className="memory-layers__item-content">
-              {item.content.split('\n')[0]}
-            </div>
-            <div className="memory-layers__item-meta">
-              <span className="memory-layers__item-strength">
-                {Math.round((item.strength || 1) * 100)}%
-              </span>
-              <span>{item.created_at?.slice(0, 10)}</span>
-              {item.source_ids && (
-                <span>{JSON.parse(item.source_ids || '[]').length} sources</span>
-              )}
-              {item.status === 'pinned' && <span className="memory-layers__pin-badge">pinned</span>}
-            </div>
-            <div className="memory-layers__item-actions">
-              {item.status !== 'pinned' ? (
-                <button
-                  className="memory-layers__action-btn"
-                  onClick={() => updateCompressionItem(item.id, { status: 'pinned' })}
-                  title="Pin — exempt from decay"
-                >
-                  pin
-                </button>
-              ) : (
-                <button
-                  className="memory-layers__action-btn"
-                  onClick={() => updateCompressionItem(item.id, { status: 'active' })}
-                  title="Unpin"
-                >
-                  unpin
-                </button>
-              )}
-              <button
-                className="memory-layers__action-btn memory-layers__action-btn--danger"
-                onClick={() => updateCompressionItem(item.id, { status: 'archived' })}
-                title="Dismiss — archive"
-              >
-                dismiss
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* L2 Patterns */}
-      <div className="memory-layers__section">
-        <div className="memory-layers__section-header">
-          <span className="memory-layers__section-title">
-            <span className="memory-layers__level-badge memory-layers__level-badge--l2">L2</span>
-            {' '}Patterns
-          </span>
-          <button
-            className="memory-layers__section-btn"
-            onClick={() => runCompression(2)}
-            title="Extract patterns from summaries"
-          >
-            extract
-          </button>
-        </div>
-        {compressionL2.length === 0 && (
-          <div className="memory-layers__empty">
-            No patterns yet. Need 5+ session summaries.
-          </div>
-        )}
-        {compressionL2.map((item) => (
-          <div
-            key={item.id}
-            className="memory-layers__item"
-            style={{ opacity: Math.max(0.3, item.strength || 1) }}
-          >
-            <div className="memory-layers__item-content">
-              {item.content.split('\n')[0]}
-            </div>
-            <div className="memory-layers__item-meta">
-              <span className="memory-layers__item-strength">
-                {Math.round((item.strength || 1) * 100)}%
-              </span>
-              <span>{item.created_at?.slice(0, 10)}</span>
-              {item.source_ids && (
-                <span>{JSON.parse(item.source_ids || '[]').length} sources</span>
-              )}
-              {item.status === 'pinned' && <span className="memory-layers__pin-badge">pinned</span>}
-            </div>
-            <div className="memory-layers__item-actions">
-              {item.status !== 'pinned' ? (
-                <button
-                  className="memory-layers__action-btn"
-                  onClick={() => updateCompressionItem(item.id, { status: 'pinned' })}
-                  title="Pin — exempt from decay"
-                >
-                  pin
-                </button>
-              ) : (
-                <button
-                  className="memory-layers__action-btn"
-                  onClick={() => updateCompressionItem(item.id, { status: 'active' })}
-                  title="Unpin"
-                >
-                  unpin
-                </button>
-              )}
-              <button
-                className="memory-layers__action-btn memory-layers__action-btn--danger"
-                onClick={() => updateCompressionItem(item.id, { status: 'archived' })}
-                title="Dismiss — archive"
-              >
-                dismiss
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── Memory View (with Landscape tab) ─────────────────────────
-function MemoryView() {
-  const [memoryTab, setMemoryTab] = useState('layers'); // 'layers' | 'landscape'
-  const selectedDimension = useStore((s) => s.selectedDimension);
-
-  return (
-    <div className="zone-body" style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
-      {/* Memory sub-tab toggle */}
-      <div className="memory-view__toggle">
-        <button
-          className={`memory-view__toggle-btn${memoryTab === 'layers' ? ' memory-view__toggle-btn--active' : ''}`}
-          onClick={() => setMemoryTab('layers')}
-        >
-          principles & patterns
-        </button>
-        <button
-          className={`memory-view__toggle-btn${memoryTab === 'landscape' ? ' memory-view__toggle-btn--active' : ''}`}
-          onClick={() => setMemoryTab('landscape')}
-        >
-          landscape
-        </button>
-      </div>
-
-      {memoryTab === 'layers' && <MemoryLayers />}
-
-      {memoryTab === 'landscape' && (
-        <React.Suspense
-          fallback={
-            <div className="empty-state">
-              <div className="empty-state__icon" style={{ animation: 'pulse 1.5s infinite' }}>&#9671;</div>
-              <div className="empty-state__text">Loading landscape...</div>
-            </div>
-          }
-        >
-          <DimensionLandscape />
-          {selectedDimension && <DimensionDetail />}
-        </React.Suspense>
-      )}
     </div>
   );
 }
@@ -390,12 +184,9 @@ function NotesPanelInner() {
         ))}
       </div>
 
-      {noteTypeFilter === 'memory' ? (
-        <MemoryView />
-      ) : (
-        <div className="zone-body notes-layout">
-          {/* ── Note List (left sidebar) ────────────────────── */}
-          <div className="notes-list" role="listbox" aria-label="Notes list">
+      <div className="zone-body notes-layout">
+        {/* ── Note List (left sidebar) ────────────────────── */}
+        <div className="notes-list" role="listbox" aria-label="Notes list">
             {filteredNotes.length === 0 && (
               <div className="notes-list-empty">
                 <span>No {noteTypeFilter === 'all' ? '' : noteTypeFilter + ' '}notes</span>
@@ -520,7 +311,6 @@ function NotesPanelInner() {
             )}
           </div>
         </div>
-      )}
     </>
   );
 }

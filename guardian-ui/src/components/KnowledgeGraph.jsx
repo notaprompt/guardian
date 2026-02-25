@@ -37,6 +37,7 @@ function KnowledgeGraphInner() {
   const canvasRef = useRef(null);
   const simRef = useRef(null);
   const animRef = useRef(null);
+  const renderRef = useRef(null);
   const transformRef = useRef({ x: 0, y: 0, k: 1 });
   const dragRef = useRef(null);
   const hoveredRef = useRef(null);
@@ -50,6 +51,13 @@ function KnowledgeGraphInner() {
   const [tooltip, setTooltip] = useState(null);
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [entitySessions, setEntitySessions] = useState([]);
+
+  // Request a single render frame when the simulation is idle (for pan/zoom/hover)
+  const requestRender = useCallback(() => {
+    if (!animRef.current && renderRef.current) {
+      animRef.current = requestAnimationFrame(renderRef.current);
+    }
+  }, []);
 
   // Fetch graph data on mount
   useEffect(() => {
@@ -213,14 +221,29 @@ function KnowledgeGraphInner() {
       }
 
       ctx.restore();
-      animRef.current = requestAnimationFrame(render);
+
+      // Stop the animation loop when the simulation has settled
+      if (sim.alpha() < sim.alphaMin()) {
+        animRef.current = null;
+      } else {
+        animRef.current = requestAnimationFrame(render);
+      }
     }
 
-    sim.on('tick', () => {}); // d3 updates positions
+    // Store render function for requestRender() to call when simulation is idle
+    renderRef.current = render;
+
+    // Schedule a render on every simulation tick while it's active
+    sim.on('tick', () => {
+      if (!animRef.current) {
+        animRef.current = requestAnimationFrame(render);
+      }
+    });
     animRef.current = requestAnimationFrame(render);
 
     return () => {
       sim.stop();
+      renderRef.current = null;
       if (animRef.current) cancelAnimationFrame(animRef.current);
     };
   }, [entities, relationships, selectedEntity]);
@@ -268,11 +291,13 @@ function KnowledgeGraphInner() {
     if (e.buttons === 1 && !dragRef.current) {
       transformRef.current.x += e.movementX;
       transformRef.current.y += e.movementY;
+      requestRender();
       return;
     }
 
     // Hover detection
     const node = findNodeAt(world.x, world.y);
+    const prev = hoveredRef.current;
     hoveredRef.current = node;
 
     if (node) {
@@ -284,10 +309,12 @@ function KnowledgeGraphInner() {
         type: node.type,
         mentionCount: node.mentionCount,
       });
+      if (!prev || prev.id !== node.id) requestRender();
     } else {
       setTooltip(null);
+      if (prev) requestRender();
     }
-  }, [screenToWorld, findNodeAt]);
+  }, [screenToWorld, findNodeAt, requestRender]);
 
   const handleMouseDown = useCallback((e) => {
     if (e.button !== 0) return;
@@ -340,7 +367,8 @@ function KnowledgeGraphInner() {
     t.x = mouseX - (mouseX - t.x) * (newK / t.k);
     t.y = mouseY - (mouseY - t.y) * (newK / t.k);
     t.k = newK;
-  }, []);
+    requestRender();
+  }, [requestRender]);
 
   // Attach wheel listener with passive: false
   useEffect(() => {

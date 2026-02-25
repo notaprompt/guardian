@@ -85,13 +85,25 @@ function HighlightedName({ text, indices }) {
 const COMMANDS = [
   // Navigation
   { id: 'focus-terminal',  name: 'Focus Terminal',           icon: '>_', category: 'navigation', shortcut: 'Ctrl+1',
-    action: (store) => store.setFocusedPanel('terminal') },
+    action: (store) => { store.toggleTerminalWindow(); store.setFocusedPanel('terminal'); } },
   { id: 'focus-chat',      name: 'Focus Chat',               icon: '\u25C7', category: 'navigation', shortcut: 'Ctrl+2',
     action: (store) => store.setFocusedPanel('chat') },
-  { id: 'focus-notes',     name: 'Focus Notes',              icon: '\u2630', category: 'navigation', shortcut: 'Ctrl+3',
-    action: (store) => store.setFocusedPanel('notes') },
-  { id: 'focus-search',    name: 'Focus Search',             icon: '\u2315', category: 'navigation', shortcut: 'Ctrl+4',
-    action: (store) => store.setFocusedPanel('artifacts') },
+  { id: 'sidebar-notes',   name: 'Sidebar: Notes',           icon: '\u2630', category: 'navigation',
+    action: (store) => { store.setActiveSidebarPanel('notes'); store.setFocusedPanel('sidebar'); } },
+  { id: 'sidebar-queue',   name: 'Sidebar: Queue',           icon: '!', category: 'navigation',
+    action: (store) => { store.setActiveSidebarPanel('queue'); store.setFocusedPanel('sidebar'); } },
+  { id: 'sidebar-search',  name: 'Sidebar: Search',          icon: '\u2315', category: 'navigation',
+    action: (store) => { store.setActiveSidebarPanel('search'); store.setFocusedPanel('sidebar'); } },
+  { id: 'sidebar-sessions', name: 'Sidebar: Sessions',       icon: '#', category: 'navigation',
+    action: (store) => { store.setActiveSidebarPanel('sessions'); store.setFocusedPanel('sidebar'); } },
+  { id: 'sidebar-reflections', name: 'Sidebar: Reflections', icon: '\u27F3', category: 'navigation',
+    action: (store) => { store.setActiveSidebarPanel('reflections'); store.setFocusedPanel('sidebar'); } },
+  { id: 'sidebar-graph',   name: 'Sidebar: Graph',           icon: '\u25C8', category: 'navigation',
+    action: (store) => { store.setActiveSidebarPanel('graph'); store.setFocusedPanel('sidebar'); } },
+  { id: 'sidebar-drift',   name: 'Sidebar: Drift',           icon: '\u25C7', category: 'navigation',
+    action: (store) => { store.setActiveSidebarPanel('drift'); store.setFocusedPanel('sidebar'); } },
+  { id: 'sidebar-memory',  name: 'Sidebar: Memory',          icon: '\u2B50', category: 'navigation',
+    action: (store) => { store.setActiveSidebarPanel('memory'); store.setFocusedPanel('sidebar'); } },
 
   // Sessions
   { id: 'new-session',     name: 'New Chat Session',         icon: '+',  category: 'session',    desc: 'Start new session',
@@ -99,15 +111,15 @@ const COMMANDS = [
 
   // Notes
   { id: 'new-scratch',     name: 'New Scratch Note',         icon: '\u270E', category: 'notes',     shortcut: 'Ctrl+N', desc: 'Quick unstructured capture',
-    action: (store) => { store.addNote(); store.setFocusedPanel('notes'); } },
+    action: (store) => { store.addNote(); store.setActiveSidebarPanel('notes'); store.setFocusedPanel('sidebar'); } },
   { id: 'new-structured',  name: 'New Structured Note',      icon: '\u2637', category: 'notes',     shortcut: 'Ctrl+Shift+N', desc: 'Titled, organized note',
-    action: (store) => { store.addNote(); store.setFocusedPanel('notes'); } },
+    action: (store) => { store.addNote(); store.setActiveSidebarPanel('notes'); store.setFocusedPanel('sidebar'); } },
   { id: 'new-journal',     name: 'New Journal Entry',        icon: '\u2609', category: 'notes',     desc: 'Date-stamped reflection',
-    action: (store) => { store.addNote(); store.setFocusedPanel('notes'); } },
+    action: (store) => { store.addNote(); store.setActiveSidebarPanel('notes'); store.setFocusedPanel('sidebar'); } },
 
   // Memory
   { id: 'search-memory',   name: 'Search Memory',            icon: '\u2315', category: 'memory',    shortcut: 'Ctrl+K', desc: 'Search conversations, notes, artifacts',
-    action: (store) => store.setFocusedPanel('artifacts') },
+    action: (store) => { store.setActiveSidebarPanel('search'); store.setFocusedPanel('sidebar'); } },
 
   // Layout
   { id: 'maximize-panel',  name: 'Maximize Focused Panel',   icon: '\u2922', category: 'layout',    shortcut: 'Ctrl+Shift+M', desc: 'Expand current panel, collapse others',

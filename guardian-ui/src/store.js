@@ -6,6 +6,10 @@ import { create } from 'zustand';
 
 let _msgIdCounter = 0;
 
+function generateId(prefix) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
 const useStore = create((set, get) => ({
 
   // ── Terminal Sessions ───────────────────────────────────
@@ -191,7 +195,7 @@ const useStore = create((set, get) => ({
       ? new Date().toISOString().slice(0, 10) // YYYY-MM-DD
       : '';
     const note = {
-      id: Date.now().toString(),
+      id: generateId('note'),
       type,
       title,
       content: '',
@@ -204,7 +208,7 @@ const useStore = create((set, get) => ({
       activeNoteId: note.id,
     }));
     // Persist to backend
-    window.guardian?.notes.create(note).catch(() => {});
+    window.guardian?.notes.create(note).catch(e => console.error('[store]', e.message || e));
     return note.id;
   },
 
@@ -215,7 +219,7 @@ const useStore = create((set, get) => ({
       )
     }));
     // Persist to backend
-    window.guardian?.notes.update(id, updates).catch(() => {});
+    window.guardian?.notes.update(id, updates).catch(e => console.error('[store]', e.message || e));
   },
 
   deleteNote: (id) => {
@@ -224,7 +228,7 @@ const useStore = create((set, get) => ({
       activeNoteId: state.activeNoteId === id ? null : state.activeNoteId,
     }));
     // Persist to backend
-    window.guardian?.notes.delete(id).catch(() => {});
+    window.guardian?.notes.delete(id).catch(e => console.error('[store]', e.message || e));
   },
 
   // Fetch version history for a note
@@ -524,11 +528,11 @@ const useStore = create((set, get) => ({
   toggleSettings: () => set((s) => ({ settingsOpen: !s.settingsOpen })),
 
   // ── Focused Panel ──────────────────────────────────────
-  focusedPanel: 'chat',   // 'terminal' | 'chat' | 'notes' | 'artifacts'
+  focusedPanel: 'chat',   // 'terminal' | 'chat' | 'sidebar'
   setFocusedPanel: (panel) => set({ focusedPanel: panel }),
 
   // ── Layout (Allotment panel sizes) ───────────────────
-  maximizedPanel: null,   // null | 'terminal' | 'chat' | 'notes' | 'artifacts'
+  maximizedPanel: null,   // null | 'terminal' | 'chat' | 'sidebar'
   setMaximizedPanel: (panel) => set({ maximizedPanel: panel }),
 
   toggleMaximizedPanel: () => {
@@ -575,12 +579,12 @@ const useStore = create((set, get) => ({
 
   setSelectedModel: (modelId) => {
     set({ selectedModel: modelId });
-    window.guardian?.model?.set(modelId).catch(() => {});
+    window.guardian?.model?.set(modelId).catch(e => console.error('[store]', e.message || e));
   },
 
   setAutoRoute: (enabled) => {
     set({ autoRoute: enabled });
-    window.guardian?.model?.setAutoRoute(enabled).catch(() => {});
+    window.guardian?.model?.setAutoRoute(enabled).catch(e => console.error('[store]', e.message || e));
   },
 
   setLastAutoTier: (tier) => set({ lastAutoTier: tier }),
@@ -750,13 +754,13 @@ const useStore = create((set, get) => ({
   setHighContrast: (enabled) => {
     set({ highContrast: enabled });
     document.body.classList.toggle('high-contrast', enabled);
-    window.guardian?.config?.set('highContrast', enabled).catch(() => {});
+    window.guardian?.config?.set('highContrast', enabled).catch(e => console.error('[store]', e.message || e));
   },
 
   setReducedMotion: (enabled) => {
     set({ reducedMotion: enabled });
     document.body.classList.toggle('reduced-motion', enabled);
-    window.guardian?.config?.set('reducedMotion', enabled).catch(() => {});
+    window.guardian?.config?.set('reducedMotion', enabled).catch(e => console.error('[store]', e.message || e));
   },
 
   loadA11yPreferences: async () => {
@@ -835,7 +839,7 @@ const useStore = create((set, get) => ({
   },
 
   trackFeature: (feature) => {
-    window.guardian?.metrics?.track(feature).catch(() => {});
+    window.guardian?.metrics?.track(feature).catch(e => console.error('[store]', e.message || e));
   },
 
   // ── Conversation Import ──────────────────────────────────
@@ -849,9 +853,65 @@ const useStore = create((set, get) => ({
     }
   },
 
-  // SearchPanel tab (lifted to store for cross-component navigation)
-  searchPanelTab: 'queue',
-  setSearchPanelTab: (tab) => set({ searchPanelTab: tab }),
+  // ── Terminal Window (floating) ─────────────────────────────
+  terminalWindowOpen: false,
+  terminalWindowMinimized: false,
+  terminalWindowMaximized: false,
+  terminalWindowPosition: { x: 60, y: 60 },
+  terminalWindowSize: { width: 720, height: 440 },
+  terminalDocked: false,
+
+  toggleTerminalWindow: () => {
+    const { terminalWindowOpen, terminalWindowMinimized, terminalDocked } = get();
+    if (terminalDocked) {
+      // Ctrl+1 when docked -> undock back to floating
+      set({ terminalDocked: false, terminalWindowOpen: true });
+      return;
+    }
+    if (!terminalWindowOpen) {
+      set({ terminalWindowOpen: true, terminalWindowMinimized: false });
+    } else if (terminalWindowMinimized) {
+      set({ terminalWindowMinimized: false });
+    } else {
+      set({ terminalWindowOpen: false });
+    }
+  },
+  closeTerminalWindow: () => set({ terminalWindowOpen: false }),
+  minimizeTerminalWindow: () => set((s) => ({
+    terminalWindowMinimized: !s.terminalWindowMinimized,
+    terminalWindowMaximized: false,
+  })),
+  maximizeTerminalWindow: () => set((s) => ({
+    terminalWindowMaximized: !s.terminalWindowMaximized,
+    terminalWindowMinimized: false,
+  })),
+  setTerminalWindowPosition: (pos) => set({ terminalWindowPosition: pos }),
+  setTerminalWindowSize: (size) => set({ terminalWindowSize: size }),
+
+  dockTerminal: () => set({
+    terminalDocked: true,
+    terminalWindowOpen: true,
+    terminalWindowMinimized: false,
+    terminalWindowMaximized: false,
+  }),
+
+  undockTerminal: () => set({
+    terminalDocked: false,
+    terminalWindowOpen: true,
+  }),
+
+  // ── Sidebar Navigation ──────────────────────────────────────
+  activeSidebarPanel: 'notes',  // 'notes'|'queue'|'search'|'sessions'|'reflections'|'graph'|'drift'|'memory'
+  sidebarCollapsed: false,
+  setActiveSidebarPanel: (panel) => {
+    const { activeSidebarPanel, sidebarCollapsed } = get();
+    if (panel === activeSidebarPanel && !sidebarCollapsed) {
+      set({ sidebarCollapsed: true });
+    } else {
+      set({ activeSidebarPanel: panel, sidebarCollapsed: false });
+    }
+  },
+  toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 
   // ── Perlocutionary Audit (Reframe Detection) ──────────────
   reframeEvents: [],
@@ -979,6 +1039,90 @@ const useStore = create((set, get) => ({
   setDimensionTimeWindow: (days) => {
     set({ dimensionTimeWindow: days, dimensionLastComputed: null });
     get().fetchDimensionScores();
+  },
+
+  // ── Reflections (Self-Exploration) ───────────────────────
+  reflectionQuery: '',
+  reflectionResults: [],
+  reflectionConversation: null,
+  reflectionStats: null,
+  reflectionLoading: false,
+  reflectionMode: 'words',   // 'words' | 'meaning' | 'inquiry'
+
+  setReflectionQuery: (q) => set({ reflectionQuery: q }),
+  setReflectionMode: (m) => set({ reflectionMode: m }),
+
+  searchReflections: async () => {
+    const q = get().reflectionQuery;
+    if (!q.trim()) {
+      set({ reflectionResults: [] });
+      return;
+    }
+    const { reflectionMode } = get();
+    if (reflectionMode === 'meaning') {
+      set({ reflectionResults: [], reflectionLoading: false });
+      console.warn('[store] searchReflections: meaning mode requires embeddings (not yet available)');
+      return;
+    }
+    if (reflectionMode === 'inquiry') {
+      set({ reflectionResults: [], reflectionLoading: false });
+      console.warn('[store] searchReflections: inquiry mode requires LLM analysis (not yet available)');
+      return;
+    }
+    set({ reflectionLoading: true });
+    try {
+      const result = await window.guardian.reflections.search({
+        query: q,
+        sender: 'both',
+        limit: 50,
+      });
+      set({
+        reflectionResults: result.ok ? result.results : [],
+        reflectionLoading: false,
+      });
+    } catch (e) {
+      console.error('[store] searchReflections failed:', e);
+      set({ reflectionResults: [], reflectionLoading: false });
+    }
+  },
+
+  loadReflectionConversation: async (id) => {
+    try {
+      const result = await window.guardian.reflections.conversation(id);
+      if (result.ok) {
+        set({ reflectionConversation: result.conversation });
+      }
+    } catch (e) {
+      console.error('[store] loadReflectionConversation failed:', e);
+    }
+  },
+
+  clearReflectionConversation: () => set({ reflectionConversation: null }),
+
+  loadReflectionStats: async () => {
+    try {
+      const result = await window.guardian.reflections.stats();
+      if (result.ok) {
+        set({ reflectionStats: result.stats });
+      }
+    } catch (e) {
+      console.error('[store] loadReflectionStats failed:', e);
+    }
+  },
+
+  importReflections: async (zipPath) => {
+    try {
+      const result = await window.guardian.reflections.ingest(zipPath);
+      if (result.ok) {
+        // Refresh stats after import
+        const stats = await window.guardian.reflections.stats();
+        if (stats.ok) set({ reflectionStats: stats.stats });
+      }
+      return result;
+    } catch (e) {
+      console.error('[store] importReflections failed:', e);
+      return { ok: false, error: e.message };
+    }
   },
 
   // ── App Meta ────────────────────────────────────────────

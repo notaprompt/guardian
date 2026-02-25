@@ -22,8 +22,7 @@ const SECTIONS = [
 const SHORTCUTS = [
   { action: 'Focus Terminal',          keys: 'Ctrl+1' },
   { action: 'Focus Chat',             keys: 'Ctrl+2' },
-  { action: 'Focus Notes',            keys: 'Ctrl+3' },
-  { action: 'Focus Search',           keys: 'Ctrl+4' },
+  { action: 'Toggle Sidebar',         keys: 'Ctrl+3' },
   { action: 'Command Palette',        keys: 'Ctrl+Shift+P' },
   { action: 'Quick Search',           keys: 'Ctrl+K' },
   { action: 'New Scratch Note',       keys: 'Ctrl+N' },
@@ -78,8 +77,6 @@ function SettingsPanelInner() {
   const deleteApiKey = useStore((s) => s.deleteApiKey);
   const fetchApiKeyStatus = useStore((s) => s.fetchApiKeyStatus);
   const testApiKey = useStore((s) => s.testApiKey);
-  const setSearchPanelTab = useStore((s) => s.setSearchPanelTab);
-
   const panelRef = useRef(null);
   const [activeSection, setActiveSection] = useState('profile');
 
@@ -246,7 +243,7 @@ function SettingsPanelInner() {
               <Suspense fallback={<div className="settings-section__title">Loading...</div>}>
                 <ImportWizard onNavigateToExplorer={() => {
                   toggleSettings();
-                  setSearchPanelTab('memory');
+                  useStore.getState().setActiveSidebarPanel('memory');
                 }} />
               </Suspense>
             )}
