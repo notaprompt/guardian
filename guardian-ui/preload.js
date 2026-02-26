@@ -267,6 +267,20 @@ contextBridge.exposeInMainWorld('guardian', {
     track: (feature) => ipcRenderer.invoke('guardian:metrics:track', { feature }),
   },
 
+  // ── Post-Chat Pipeline Status ───────────────────
+  pipeline: {
+    onStatus: (callback) => {
+      const handler = (_event, payload) => callback(payload);
+      ipcRenderer.on('guardian:pipeline:status', handler);
+      return () => ipcRenderer.removeListener('guardian:pipeline:status', handler);
+    },
+    onDigest: (callback) => {
+      const handler = (_event, payload) => callback(payload);
+      ipcRenderer.on('guardian:pipeline:digest', handler);
+      return () => ipcRenderer.removeListener('guardian:pipeline:digest', handler);
+    },
+  },
+
   // ── Librarian (Auto-Extraction) ─────────────────
   librarian: {
     onStatus: (callback) => {

@@ -662,6 +662,17 @@ const useStore = create((set, get) => ({
     window.guardian?.librarian?.onComplete((result) => set({ librarianStatus: { ...result, status: 'complete' } }));
   },
 
+  // ── Post-Chat Pipeline Status ─────────────────
+  pipelineStatus: null,  // null | { active, step, sessionId }
+  pipelineDigest: null,  // null | { sessionId, awareness, summarized, embeddingChunks, entities, relationships, notesCreated, artifactsFiled }
+
+  initPipeline: () => {
+    window.guardian?.pipeline?.onStatus((status) => set({ pipelineStatus: status.active ? status : null }));
+    window.guardian?.pipeline?.onDigest((digest) => set({ pipelineDigest: digest }));
+  },
+
+  clearPipelineDigest: () => set({ pipelineDigest: null }),
+
   // ── Awareness-Trap Detection ─────────────────
   // Detection result from main process, or null if no pattern detected
   awareness: null,   // { topic, sessionCount, spanText, confidence, ... }

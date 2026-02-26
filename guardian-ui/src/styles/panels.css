@@ -1114,6 +1114,30 @@
   animation: drift-fade 15s ease-out forwards;
 }
 
+.bottom-bar__pipeline {
+  color: var(--white-50);
+  font-size: 0.78em;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  animation: pipeline-pulse 1.8s ease-in-out infinite;
+}
+
+.bottom-bar__pipeline::before {
+  content: '\25CB ';
+  animation: pipeline-spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes pipeline-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes pipeline-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 @keyframes drift-fade {
   0% { opacity: 0.7; }
   70% { opacity: 0.6; }
@@ -1824,6 +1848,56 @@
 }
 
 /* ── Chat Librarian Status ───────────────────────────────── */
+
+/* ── Pipeline Digest Card ─────────────────────────────────── */
+
+.chat-digest {
+  margin: 6px 14px;
+  padding: 8px 12px;
+  background: rgba(91, 242, 155, 0.04);
+  border: 1px solid rgba(91, 242, 155, 0.12);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--white-50);
+}
+
+.chat-digest__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--alive);
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: 0.05em;
+}
+
+.chat-digest__dismiss {
+  background: none;
+  border: none;
+  color: var(--white-30);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0 4px;
+}
+
+.chat-digest__dismiss:hover { color: var(--white-60); }
+
+.chat-digest__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.chat-digest__items span {
+  color: var(--white-40);
+}
+
+.chat-digest__items span::before {
+  content: '\2022 ';
+  color: var(--white-20);
+}
 
 .chat-librarian-status {
   padding: 6px 14px;

@@ -79,6 +79,8 @@ export default function App() {
   const setLastAutoTier = useStore((s) => s.setLastAutoTier);
   const loadA11yPreferences = useStore((s) => s.loadA11yPreferences);
   const toggleSidebar = useStore((s) => s.toggleSidebar);
+  const pipelineStatus = useStore((s) => s.pipelineStatus);
+  const initPipeline = useStore((s) => s.initPipeline);
   const toggleTerminalWindow = useStore((s) => s.toggleTerminalWindow);
   const terminalDocked = useStore((s) => s.terminalDocked);
   const undockTerminal = useStore((s) => s.undockTerminal);
@@ -122,7 +124,8 @@ export default function App() {
     fetchModelSettings();
     loadLayout();
     loadA11yPreferences();
-  }, [setSystemInfo, fetchSessions, fetchNotes, fetchQueue, fetchProfile, fetchModelSettings, loadLayout, loadA11yPreferences]);
+    initPipeline();
+  }, [setSystemInfo, fetchSessions, fetchNotes, fetchQueue, fetchProfile, fetchModelSettings, loadLayout, loadA11yPreferences, initPipeline]);
 
   // Subscribe to telemetry pushes from main process
   useEffect(() => {
@@ -438,6 +441,11 @@ export default function App() {
             }`} aria-hidden="true" />
             <span>{telemetry.systemState}</span>
           </div>
+          {pipelineStatus && (
+            <span className="bottom-bar__pipeline" aria-live="polite">
+              {pipelineStatus.step || 'starting'}
+            </span>
+          )}
           {telemetry.elapsed > 0 && (
             <span className="bottom-bar__metric" aria-label={`Session duration: ${formatDuration(telemetry.elapsed)}`}>
               {formatDuration(telemetry.elapsed)}

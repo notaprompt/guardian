@@ -41,6 +41,8 @@ function ChatPanelInner() {
   const initWelcome = useStore((s) => s.initWelcome);
   const librarianStatus = useStore((s) => s.librarianStatus);
   const initLibrarian = useStore((s) => s.initLibrarian);
+  const pipelineDigest = useStore((s) => s.pipelineDigest);
+  const clearPipelineDigest = useStore((s) => s.clearPipelineDigest);
 
   // ── First-run welcome (Spec VI Step 4) ─────────────────────
   // Detect: onboarding complete + no sessions exist + haven't done this yet
@@ -374,6 +376,25 @@ function ChatPanelInner() {
               <div className="chat-error__type">{chatError.type}</div>
             )}
             {chatError.message}
+          </div>
+        )}
+
+        {/* Pipeline digest card */}
+        {pipelineDigest && (
+          <div className="chat-digest" role="status" aria-live="polite">
+            <div className="chat-digest__header">
+              Guardian learned
+              <button className="chat-digest__dismiss" onClick={clearPipelineDigest} aria-label="Dismiss digest">x</button>
+            </div>
+            <div className="chat-digest__items">
+              {pipelineDigest.summarized && <span>summarized</span>}
+              {pipelineDigest.entities > 0 && <span>{pipelineDigest.entities} entities</span>}
+              {pipelineDigest.relationships > 0 && <span>{pipelineDigest.relationships} relationships</span>}
+              {pipelineDigest.embeddingChunks > 0 && <span>{pipelineDigest.embeddingChunks} chunks indexed</span>}
+              {pipelineDigest.notesCreated > 0 && <span>{pipelineDigest.notesCreated} notes created</span>}
+              {pipelineDigest.artifactsFiled > 0 && <span>{pipelineDigest.artifactsFiled} artifacts filed</span>}
+              {pipelineDigest.awareness && <span>awareness pattern detected</span>}
+            </div>
           </div>
         )}
 
