@@ -14,10 +14,11 @@ export default function AwarenessAlert() {
   const promoteAwareness = useStore((s) => s.promoteAwareness);
   const sessions = useStore((s) => s.sessions);
   const navigateTo = useStore((s) => s.navigateTo);
+  const quietMode = useStore((s) => s.quietMode);
   const [dismissing, setDismissing] = useState(false);
   const [showSessions, setShowSessions] = useState(false);
 
-  if (!awareness || awareness.dismissed) return null;
+  if (!awareness || awareness.dismissed || quietMode) return null;
 
   const handleDismiss = useCallback(async () => {
     setDismissing(true);

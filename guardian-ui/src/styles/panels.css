@@ -1899,6 +1899,105 @@
   color: var(--white-20);
 }
 
+.chat-digest__item--link {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.chat-digest__item--link:hover {
+  color: var(--glow);
+}
+
+.chat-digest__item--awareness {
+  color: #D4A843;
+}
+
+/* ── Session Context Card (Proactive Surfacing) ────────── */
+
+.session-context {
+  margin: 6px 14px;
+  padding: 8px 12px;
+  background: rgba(91, 242, 155, 0.02);
+  border: 1px solid rgba(91, 242, 155, 0.08);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--white-40);
+}
+
+.session-context__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.session-context__label {
+  text-transform: uppercase;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--white-30);
+}
+
+.session-context__dismiss {
+  background: none;
+  border: none;
+  color: var(--white-30);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0 4px;
+}
+
+.session-context__dismiss:hover { color: var(--white-60); }
+
+.session-context__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.session-context__item {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--white-08);
+  border-radius: 10px;
+  font-size: 9px;
+  color: var(--white-40);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.session-context__item:hover {
+  border-color: var(--glow-trace);
+  color: var(--glow);
+  background: var(--glow-dim);
+}
+
+.session-context__item--awareness {
+  color: #D4A843;
+  border-color: rgba(212, 168, 67, 0.2);
+  cursor: default;
+}
+
+.session-context__item--awareness:hover {
+  color: #D4A843;
+  border-color: rgba(212, 168, 67, 0.3);
+  background: rgba(212, 168, 67, 0.04);
+}
+
+.session-context__item--dim {
+  color: var(--white-20);
+  border-color: var(--white-04);
+}
+
+.session-context__item--dim:hover {
+  color: var(--white-40);
+  border-color: var(--white-12);
+  background: rgba(255, 255, 255, 0.02);
+}
+
 .chat-librarian-status {
   padding: 6px 14px;
   margin: 4px 14px;

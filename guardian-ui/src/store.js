@@ -680,6 +680,33 @@ const useStore = create((set, get) => ({
 
   clearPipelineDigest: () => set({ pipelineDigest: null }),
 
+  // ── Session Context (Proactive Surfacing) ──────────
+  sessionContext: null,  // null | { queueItems, patterns, awareness, weekSessions }
+  quietMode: false,
+
+  setQuietMode: (enabled) => {
+    set({ quietMode: enabled });
+    window.guardian?.config?.set('quietMode', enabled).catch(e => console.error('[store]', e.message || e));
+  },
+
+  buildSessionContext: () => {
+    const { quietMode, queueItems, compressionL2, compressionL3, awareness, sessions } = get();
+    if (quietMode) { set({ sessionContext: null }); return; }
+
+    const openQueue = queueItems.filter(i => i.status === 'open').slice(0, 3);
+    const recentPatterns = [...compressionL3, ...compressionL2]
+      .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+      .slice(0, 2);
+
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    const weekSessions = sessions.filter(s => s.started_at > weekAgo).length;
+
+    const hasContent = openQueue.length > 0 || recentPatterns.length > 0 || awareness;
+    set({ sessionContext: hasContent ? { queueItems: openQueue, patterns: recentPatterns, awareness, weekSessions } : null });
+  },
+
+  dismissSessionContext: () => set({ sessionContext: null }),
+
   // ── Awareness-Trap Detection ─────────────────
   // Detection result from main process, or null if no pattern detected
   awareness: null,   // { topic, sessionCount, spanText, confidence, ... }
@@ -787,7 +814,8 @@ const useStore = create((set, get) => ({
       if (result?.ok && result.value) {
         const hc = result.value.highContrast === true;
         const rm = result.value.reducedMotion === true;
-        set({ highContrast: hc, reducedMotion: rm });
+        const qm = result.value.quietMode === true;
+        set({ highContrast: hc, reducedMotion: rm, quietMode: qm });
         document.body.classList.toggle('high-contrast', hc);
         document.body.classList.toggle('reduced-motion', rm);
       }

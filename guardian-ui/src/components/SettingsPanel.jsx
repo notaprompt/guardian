@@ -85,6 +85,7 @@ function SettingsPanelInner() {
     notesInjection: true,
     maxContextTokens: 2000,
     awarenessTrap: true,
+    quietMode: false,
     backupFrequency: 'weekly',
   });
 
@@ -100,17 +101,24 @@ function SettingsPanelInner() {
           notesInjection: s.notesInjection !== false,
           maxContextTokens: s.maxContextTokens || 2000,
           awarenessTrap: s.awarenessTrap !== false,
+          quietMode: s.quietMode === true,
           backupFrequency: s.backupFrequency || 'weekly',
         }));
       }
     });
   }, [settingsOpen]);
 
+  const setQuietMode = useStore((s) => s.setQuietMode);
+
   // Persist a single config key
   const updateConfig = useCallback((key, value) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
-    window.guardian?.config.set(key, value).catch(() => {});
-  }, []);
+    if (key === 'quietMode') {
+      setQuietMode(value);
+    } else {
+      window.guardian?.config.set(key, value).catch(() => {});
+    }
+  }, [setQuietMode]);
 
   // Escape to close + focus trap
   useEffect(() => {
@@ -651,6 +659,22 @@ function DetectionSection({ config, updateConfig }) {
           <Toggle
             value={config.awarenessTrap}
             onChange={(v) => updateConfig('awarenessTrap', v)}
+          />
+        </div>
+      </div>
+      <div className="settings-row">
+        <div className="settings-row__info">
+          <div className="settings-row__label">Quiet Mode</div>
+          <div className="settings-row__desc">
+            Suppress proactive surfacing -- session context hints,
+            pipeline digest cards, and awareness alerts. Guardian still
+            collects and processes; it just won't interrupt you.
+          </div>
+        </div>
+        <div className="settings-row__control">
+          <Toggle
+            value={config.quietMode}
+            onChange={(v) => updateConfig('quietMode', v)}
           />
         </div>
       </div>

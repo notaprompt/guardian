@@ -6,6 +6,7 @@ import PanelHeader from '../components/PanelHeader';
 import TokenUsage from '../components/TokenUsage';
 import ThinkingIndicator from '../components/ThinkingIndicator';
 import AwarenessAlert from '../components/AwarenessAlert';
+import SessionContext from '../components/SessionContext';
 import useStore from '../store';
 
 function ChatPanelInner() {
@@ -43,6 +44,9 @@ function ChatPanelInner() {
   const initLibrarian = useStore((s) => s.initLibrarian);
   const pipelineDigest = useStore((s) => s.pipelineDigest);
   const clearPipelineDigest = useStore((s) => s.clearPipelineDigest);
+  const navigateTo = useStore((s) => s.navigateTo);
+  const quietMode = useStore((s) => s.quietMode);
+  const buildSessionContext = useStore((s) => s.buildSessionContext);
 
   // ── First-run welcome (Spec VI Step 4) ─────────────────────
   // Detect: onboarding complete + no sessions exist + haven't done this yet
@@ -60,6 +64,13 @@ function ChatPanelInner() {
       initWelcome();
     }
   }, [profile, sessions, messages.length, firstRunComplete, addMessage, initWelcome]);
+
+  // Build session context on empty session
+  useEffect(() => {
+    if (!activeSessionId && messages.length === 0) {
+      buildSessionContext();
+    }
+  }, [activeSessionId, messages.length, buildSessionContext]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -244,7 +255,8 @@ function ChatPanelInner() {
     setChatError(null);
     setSessionStatus('ready');
     fetchSessions();
-  }, [clearChat, setChatIsResponding, fetchSessions]);
+    buildSessionContext();
+  }, [clearChat, setChatIsResponding, fetchSessions, buildSessionContext]);
 
   const handleStop = useCallback(async () => {
     await window.guardian?.chat.stop();
@@ -334,6 +346,7 @@ function ChatPanelInner() {
       {showUsage && <TokenUsage />}
 
       <AwarenessAlert />
+      <SessionContext />
 
       <div className="chat-messages" style={{ flex: 1, minHeight: 0 }} role="log" aria-label="Chat messages" aria-live="polite">
         {messages.length === 0 && (
@@ -380,7 +393,7 @@ function ChatPanelInner() {
         )}
 
         {/* Pipeline digest card */}
-        {pipelineDigest && (
+        {pipelineDigest && !quietMode && (
           <div className="chat-digest" role="status" aria-live="polite">
             <div className="chat-digest__header">
               Guardian learned
@@ -388,12 +401,36 @@ function ChatPanelInner() {
             </div>
             <div className="chat-digest__items">
               {pipelineDigest.summarized && <span>summarized</span>}
-              {pipelineDigest.entities > 0 && <span>{pipelineDigest.entities} entities</span>}
-              {pipelineDigest.relationships > 0 && <span>{pipelineDigest.relationships} relationships</span>}
-              {pipelineDigest.embeddingChunks > 0 && <span>{pipelineDigest.embeddingChunks} chunks indexed</span>}
-              {pipelineDigest.notesCreated > 0 && <span>{pipelineDigest.notesCreated} notes created</span>}
-              {pipelineDigest.artifactsFiled > 0 && <span>{pipelineDigest.artifactsFiled} artifacts filed</span>}
-              {pipelineDigest.awareness && <span>awareness pattern detected</span>}
+              {pipelineDigest.entities > 0 && (
+                <span className="chat-digest__item--link" onClick={() => navigateTo('graph')}>
+                  {pipelineDigest.entities} entities
+                </span>
+              )}
+              {pipelineDigest.relationships > 0 && (
+                <span className="chat-digest__item--link" onClick={() => navigateTo('graph')}>
+                  {pipelineDigest.relationships} relationships
+                </span>
+              )}
+              {pipelineDigest.embeddingChunks > 0 && (
+                <span className="chat-digest__item--link" onClick={() => navigateTo('search')}>
+                  {pipelineDigest.embeddingChunks} chunks indexed
+                </span>
+              )}
+              {pipelineDigest.notesCreated > 0 && (
+                <span className="chat-digest__item--link" onClick={() => navigateTo('notes')}>
+                  {pipelineDigest.notesCreated} notes created
+                </span>
+              )}
+              {pipelineDigest.artifactsFiled > 0 && (
+                <span className="chat-digest__item--link" onClick={() => navigateTo('notes')}>
+                  {pipelineDigest.artifactsFiled} artifacts filed
+                </span>
+              )}
+              {pipelineDigest.awareness && (
+                <span className="chat-digest__item--link chat-digest__item--awareness">
+                  awareness pattern detected
+                </span>
+              )}
             </div>
           </div>
         )}
