@@ -10,6 +10,17 @@ const path = require('path');
 const zlib = require('zlib');
 const log = require('./logger');
 const { buildFtsQuery } = require('./database');
+const ollama = require('./ollama');
+
+function cosineSimilarity(a, b) {
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
 
 // ── ZIP Helpers ──────────────────────────────────────────────
 
@@ -314,29 +325,126 @@ function getStats(db) {
   };
 }
 
-// ── Semantic Search (stub — wired when Mac arrives) ──────────
+// ── Semantic Search ──────────────────────────────────────────
 
-function semanticSearch(db, { query, limit = 20 }) {
+async function semanticSearch(db, { query, limit = 20 }) {
   const embeddingCount = db.prepare(
     'SELECT COUNT(*) as c FROM reflection_embeddings'
   ).get().c;
 
   if (embeddingCount === 0) {
-    throw new Error('No embeddings available. Run embedding generation on local hardware first.');
+    throw new Error('No embeddings available. Run "Embed All" first.');
   }
 
-  // Placeholder: actual cosine similarity search requires Ollama for query embedding
-  throw new Error('Semantic search requires Ollama with nomic-embed-text. Available on local hardware.');
+  const queryVec = await ollama.embed(query);
+
+  const rows = db.prepare(`
+    SELECT e.message_id, e.vector,
+           m.text, m.sender, m.created_at,
+           m.conversation_id,
+           c.title AS conversation_title
+    FROM reflection_embeddings e
+    JOIN reflection_messages m ON m.id = e.message_id
+    JOIN reflection_conversations c ON c.id = m.conversation_id
+  `).all();
+
+  const scored = rows.map((row) => {
+    const vec = new Float32Array(new Uint8Array(row.vector).buffer);
+    const similarity = cosineSimilarity(queryVec, vec);
+    return {
+      id: row.message_id,
+      conversation_id: row.conversation_id,
+      conversation_title: row.conversation_title,
+      sender: row.sender,
+      text: row.text,
+      created_at: row.created_at,
+      similarity,
+    };
+  });
+
+  scored.sort((a, b) => b.similarity - a.similarity);
+  return scored.slice(0, limit);
 }
 
-function embedAll(db, { onProgress }) {
-  throw new Error('Embedding generation requires Ollama with nomic-embed-text. Available on local hardware.');
+async function embedAll(db, { onProgress }) {
+  const rows = db.prepare(`
+    SELECT m.id, m.text
+    FROM reflection_messages m
+    LEFT JOIN reflection_embeddings e ON e.message_id = m.id
+    WHERE e.message_id IS NULL
+  `).all();
+
+  const total = rows.length;
+  if (total === 0) {
+    if (onProgress) onProgress({ done: 0, total: 0, status: 'done', errors: [] });
+    return;
+  }
+
+  const insert = db.prepare(
+    'INSERT OR REPLACE INTO reflection_embeddings (message_id, vector) VALUES (?, ?)'
+  );
+
+  let done = 0;
+  const errors = [];
+
+  for (const row of rows) {
+    if (!row.text || !row.text.trim()) {
+      done++;
+      continue;
+    }
+    try {
+      const vec = await ollama.embed(row.text);
+      const buf = Buffer.from(new Float32Array(vec).buffer);
+      insert.run(row.id, buf);
+    } catch (e) {
+      errors.push(`${row.id}: ${e.message}`);
+      log.warn(`Reflections embed failed for ${row.id}:`, e.message);
+    }
+    done++;
+    if (onProgress) onProgress({ done, total, status: 'embedding', errors });
+  }
+
+  if (onProgress) onProgress({ done, total, status: 'done', errors });
 }
 
-// ── LLM Analysis (stub — wired when Mac arrives) ────────────
+// ── LLM Analysis (RAG) ──────────────────────────────────────
 
-function analyze(db, { query, messageIds }) {
-  throw new Error('Analysis requires Ollama with qwen2.5:7b-instruct. Available on local hardware.');
+async function analyze(db, { query, limit = 10 }) {
+  let sources;
+  try {
+    sources = await semanticSearch(db, { query, limit: 5 });
+  } catch {
+    // Fall back to FTS if no embeddings
+    sources = search(db, { query, limit: 5 }).map((r) => ({
+      id: r.id,
+      conversation_id: r.conversation_id,
+      conversation_title: r.conversation_title,
+      sender: r.sender,
+      text: r.text,
+      created_at: r.created_at,
+      similarity: null,
+    }));
+  }
+
+  if (sources.length === 0) {
+    return { answer: 'No relevant context found for this query.', sources: [] };
+  }
+
+  const excerpts = sources
+    .map((s, i) => `${i + 1}. [${s.sender} in "${s.conversation_title}"]: ${s.text.slice(0, 500)}`)
+    .join('\n');
+
+  const prompt = `You are analyzing conversation history. Based on the following excerpts, answer the user's question with specific references.
+
+[Excerpts]
+${excerpts}
+
+Question: ${query}
+
+Provide a thoughtful analysis with references to specific conversations.`;
+
+  const answer = await ollama.generate(prompt);
+  return { answer, sources };
 }
 
 module.exports = {

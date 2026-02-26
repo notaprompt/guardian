@@ -3342,3 +3342,72 @@
   border-radius: 3px;
   flex-shrink: 0;
 }
+
+/* Reflections inquiry result */
+.reflections-inquiry-result { padding: 12px; margin: 8px 0; }
+.reflections-inquiry-answer { font-family: var(--mono); font-size: 12px; color: var(--white-80); line-height: 1.6; white-space: pre-wrap; padding: 12px; background: var(--depth-2); border-radius: 4px; border: 1px solid var(--white-08); }
+.reflections-inquiry-sources { margin-top: 8px; }
+.reflections-inquiry-sources summary { font-size: 11px; color: var(--white-40); cursor: pointer; }
+.reflections-inquiry-source { padding: 4px 8px; font-size: 11px; color: var(--white-60); border-left: 2px solid var(--white-08); margin: 4px 0; }
+
+/* Similarity badge */
+.reflections-result__similarity { font-size: 10px; font-family: var(--mono); color: var(--glow); margin-left: auto; flex-shrink: 0; }
+
+/* Embed button + progress */
+.reflections-embed-btn { font-size: 11px; padding: 4px 10px; background: var(--depth-2); border: 1px solid var(--white-08); color: var(--white-60); border-radius: 3px; cursor: pointer; }
+.reflections-embed-btn:hover { color: var(--white-90); border-color: var(--white-20); }
+.reflections-embed-btn:disabled { opacity: 0.5; cursor: default; }
+.reflections-embed-progress { height: 3px; background: var(--depth-3); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.reflections-embed-progress__bar { height: 100%; background: var(--glow); transition: width 0.3s ease; }
+
+/* ── Sovereign Layer ───────────────────────────────────── */
+
+.sovereign-btn {
+  font-size: 10px;
+  font-family: var(--mono);
+  padding: 2px 6px;
+  background: transparent;
+  border: 1px solid var(--white-08);
+  color: var(--white-40);
+  border-radius: 3px;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+.sovereign-btn:hover {
+  color: var(--white-60);
+  border-color: var(--white-20);
+}
+.sovereign-btn--deep {
+  color: #d4a017;
+  border-color: #d4a01766;
+}
+.sovereign-btn--deep:hover {
+  color: #e6b422;
+  border-color: #d4a017;
+}
+.sovereign-btn--sovereign {
+  color: #1a1a1a;
+  background: #d4a017;
+  border-color: #d4a017;
+}
+.sovereign-btn--sovereign:hover {
+  background: #e6b422;
+  border-color: #e6b422;
+}
+
+/* Notes list item sensitivity borders */
+.notes-list-item--deep {
+  border-left: 2px solid #d4a01766;
+}
+.notes-list-item--sovereign {
+  border-left: 2px solid #d4a017;
+}
+
+/* Queue item sensitivity borders */
+.queue-item--deep {
+  border-left: 2px solid #d4a01766;
+}
+.queue-item--sovereign {
+  border-left: 2px solid #d4a017;
+}

@@ -223,13 +223,16 @@ function exportAllNotesAsMarkdown(notes, outputDir) {
  * Export a full data dump as JSON (all sessions + messages + notes).
  * Returns the JSON string.
  */
-function exportFullDataAsJSON(database) {
+function exportFullDataAsJSON(database, opts = {}) {
   const sessions = database.sessions.list();
   const allMessages = {};
   for (const s of sessions) {
     allMessages[s.id] = database.messages.listBySession(s.id);
   }
-  const notes = database.notes.list();
+  let notes = database.notes.list();
+  if (opts.excludeSovereign) {
+    notes = notes.filter((n) => n.sensitivity !== 'sovereign');
+  }
   const usage = database.usage.list({ limit: 10000 });
 
   const data = {

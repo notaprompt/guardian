@@ -85,6 +85,7 @@ function NotesPanelInner() {
   const setActiveNoteId = useStore((s) => s.setActiveNoteId);
   const setNoteTypeFilter = useStore((s) => s.setNoteTypeFilter);
   const resumeSession = useStore((s) => s.resumeSession);
+  const setSensitivity = useStore((s) => s.setSensitivity);
 
   const [showVersions, setShowVersions] = useState(false);
   const editorRef = useRef(null);
@@ -165,6 +166,12 @@ function NotesPanelInner() {
     return '';
   }, []);
 
+  // Sensitivity cycle: surface -> deep -> sovereign -> surface
+  const cycleSensitivity = useCallback((noteId, current) => {
+    const next = current === 'surface' ? 'deep' : current === 'deep' ? 'sovereign' : 'surface';
+    setSensitivity('notes', noteId, next);
+  }, [setSensitivity]);
+
   return (
     <>
       <PanelHeader label="Notes">
@@ -209,7 +216,7 @@ function NotesPanelInner() {
               <div
                 key={note.id}
                 role="option"
-                className={`notes-list-item${activeNoteId === note.id ? ' notes-list-item--active' : ''}`}
+                className={`notes-list-item${activeNoteId === note.id ? ' notes-list-item--active' : ''}${note.sensitivity && note.sensitivity !== 'surface' ? ` notes-list-item--${note.sensitivity}` : ''}`}
                 onClick={() => { setActiveNoteId(note.id); setShowVersions(false); }}
                 aria-selected={activeNoteId === note.id}
                 tabIndex={0}
@@ -270,6 +277,13 @@ function NotesPanelInner() {
                     </span>
                   )}
                   <div className="notes-editor__actions">
+                    <button
+                      className={`sovereign-btn${activeNote.sensitivity === 'deep' ? ' sovereign-btn--deep' : ''}${activeNote.sensitivity === 'sovereign' ? ' sovereign-btn--sovereign' : ''}`}
+                      onClick={() => cycleSensitivity(activeNote.id, activeNote.sensitivity || 'surface')}
+                      title={`Sensitivity: ${activeNote.sensitivity || 'surface'} (click to cycle)`}
+                    >
+                      {activeNote.sensitivity === 'deep' ? 'deep' : activeNote.sensitivity === 'sovereign' ? 'sovereign' : 'surface'}
+                    </button>
                     {activeNote.source_session_id && (
                       <button
                         className="notes-editor__btn notes-editor__source-btn"

@@ -47,6 +47,10 @@ export default function ReflectionsExplorer() {
   const loadStats = useStore((s) => s.loadReflectionStats);
   const importReflections = useStore((s) => s.importReflections);
 
+  const embeddingProgress = useStore((s) => s.embeddingProgress);
+  const startEmbedding = useStore((s) => s.startEmbedding);
+  const initEmbeddingProgress = useStore((s) => s.initEmbeddingProgress);
+
   const [highlightMessageId, setHighlightMessageId] = useState(null);
   const [importStatus, setImportStatus] = useState(null);
 
@@ -54,12 +58,15 @@ export default function ReflectionsExplorer() {
     loadStats();
   }, [loadStats]);
 
+  useEffect(() => {
+    const cleanup = initEmbeddingProgress();
+    return cleanup;
+  }, [initEmbeddingProgress]);
+
   const handleSearch = useCallback(() => {
     if (!query.trim()) return;
-    if (mode === 'words') {
-      searchReflections();
-    }
-  }, [query, mode, searchReflections]);
+    searchReflections();
+  }, [query, searchReflections]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter') {
@@ -110,11 +117,11 @@ export default function ReflectionsExplorer() {
 
   // Search view
   const hasData = stats && stats.conversations > 0;
-  const stubMessage = 'Available on local hardware';
+  const isEmbedding = embeddingProgress && (embeddingProgress.status === 'starting' || embeddingProgress.status === 'embedding');
 
   return (
     <div className="reflections-explorer">
-      {/* Header with import button */}
+      {/* Header with import + embed buttons */}
       <div className="reflections-explorer__toolbar">
         <button
           className="reflections-explorer__import-btn"
@@ -123,7 +130,25 @@ export default function ReflectionsExplorer() {
         >
           Import conversations
         </button>
+        {hasData && (
+          <button
+            className="reflections-embed-btn"
+            onClick={startEmbedding}
+            disabled={isEmbedding}
+            title="Generate embeddings for semantic search"
+          >
+            {isEmbedding ? 'Embedding...' : 'Embed All'}
+          </button>
+        )}
       </div>
+      {embeddingProgress && embeddingProgress.status !== 'done' && (
+        <div className="reflections-embed-progress">
+          <div
+            className="reflections-embed-progress__bar"
+            style={{ width: embeddingProgress.total > 0 ? `${(embeddingProgress.done / embeddingProgress.total) * 100}%` : '0%' }}
+          />
+        </div>
+      )}
 
       {importStatus && (
         <div className="reflections-explorer__status">
@@ -159,7 +184,6 @@ export default function ReflectionsExplorer() {
           onClick={() => setMode('meaning')}
           role="radio"
           aria-checked={mode === 'meaning'}
-          title={stubMessage}
         >
           Meaning
         </button>
@@ -168,7 +192,6 @@ export default function ReflectionsExplorer() {
           onClick={() => setMode('inquiry')}
           role="radio"
           aria-checked={mode === 'inquiry'}
-          title={stubMessage}
         >
           Inquiry
         </button>
@@ -178,15 +201,6 @@ export default function ReflectionsExplorer() {
       {hasData && (
         <div className="reflections-explorer__stats">
           {formatDateRange(stats)}
-        </div>
-      )}
-
-      {/* Meaning / Inquiry stub notice */}
-      {(mode === 'meaning' || mode === 'inquiry') && (
-        <div className="reflections-explorer__stub-notice">
-          {mode === 'meaning'
-            ? 'Semantic search requires local hardware with Ollama and nomic-embed-text.'
-            : 'Inquiry mode requires local hardware with Ollama and qwen2.5:7b-instruct.'}
         </div>
       )}
 
@@ -211,7 +225,7 @@ export default function ReflectionsExplorer() {
         )}
 
         {/* No results for query */}
-        {hasData && !loading && results.length === 0 && query.trim() && mode === 'words' && (
+        {hasData && !loading && results.length === 0 && query.trim() && (
           <div className="empty-state">
             <div className="empty-state__icon">?</div>
             <div className="empty-state__text">
@@ -220,8 +234,30 @@ export default function ReflectionsExplorer() {
           </div>
         )}
 
-        {/* Search results */}
-        {results.length > 0 && (
+        {/* Inquiry result */}
+        {results.length > 0 && results[0]?.type === 'inquiry' && (
+          <div className="reflections-inquiry-result">
+            <div className="reflections-inquiry-answer">{results[0].answer}</div>
+            {results[0].sources && results[0].sources.length > 0 && (
+              <details className="reflections-inquiry-sources">
+                <summary>{results[0].sources.length} source{results[0].sources.length !== 1 ? 's' : ''} referenced</summary>
+                {results[0].sources.map((src, i) => (
+                  <div
+                    key={src.id || i}
+                    className="reflections-inquiry-source"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleResultClick(src)}
+                  >
+                    {src.sender === 'human' ? 'You' : 'Claude'} in "{src.conversation_title}" -- {(src.text || '').slice(0, 120)}...
+                  </div>
+                ))}
+              </details>
+            )}
+          </div>
+        )}
+
+        {/* Search results (words + meaning) */}
+        {results.length > 0 && !results[0]?.type && (
           <div className="reflections-results" role="list" aria-label="Reflection search results">
             {results.map((result, i) => (
               <div
@@ -234,6 +270,11 @@ export default function ReflectionsExplorer() {
               >
                 <div className="reflections-result__convo-title">
                   {result.conversation_title || 'Untitled'}
+                  {result.similarity != null && (
+                    <span className="reflections-result__similarity">
+                      {(result.similarity * 100).toFixed(1)}%
+                    </span>
+                  )}
                 </div>
                 <div className="reflections-result__meta">
                   {formatDate(result.created_at)}

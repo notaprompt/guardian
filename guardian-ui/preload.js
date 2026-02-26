@@ -351,6 +351,12 @@ contextBridge.exposeInMainWorld('guardian', {
     },
   },
 
+  // ── Sovereign Layer ──────────────────────────────────
+  sovereign: {
+    setSensitivity: (table, id, sensitivity) => ipcRenderer.invoke('guardian:sovereign:setSensitivity', { table, id, sensitivity }),
+    getSensitivity: (table, id) => ipcRenderer.invoke('guardian:sovereign:getSensitivity', { table, id }),
+  },
+
   // ── Performance Profiling ────────────────────────────
   perf: {
     snapshot: () => ipcRenderer.invoke('guardian:perf:snapshot'),

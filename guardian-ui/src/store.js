@@ -1105,27 +1105,38 @@ const useStore = create((set, get) => ({
       return;
     }
     const { reflectionMode } = get();
-    if (reflectionMode === 'meaning') {
-      set({ reflectionResults: [], reflectionLoading: false });
-      console.warn('[store] searchReflections: meaning mode requires embeddings (not yet available)');
-      return;
-    }
-    if (reflectionMode === 'inquiry') {
-      set({ reflectionResults: [], reflectionLoading: false });
-      console.warn('[store] searchReflections: inquiry mode requires LLM analysis (not yet available)');
-      return;
-    }
     set({ reflectionLoading: true });
     try {
-      const result = await window.guardian.reflections.search({
-        query: q,
-        sender: 'both',
-        limit: 50,
-      });
-      set({
-        reflectionResults: result.ok ? result.results : [],
-        reflectionLoading: false,
-      });
+      if (reflectionMode === 'words') {
+        const result = await window.guardian.reflections.search({
+          query: q,
+          sender: 'both',
+          limit: 50,
+        });
+        set({
+          reflectionResults: result.ok ? result.results : [],
+          reflectionLoading: false,
+        });
+      } else if (reflectionMode === 'meaning') {
+        const result = await window.guardian.reflections.semantic({ query: q, limit: 20 });
+        if (result.ok) {
+          set({ reflectionResults: result.results, reflectionLoading: false });
+        } else {
+          set({ reflectionResults: [], reflectionLoading: false });
+          console.warn('[store] semantic search failed:', result.error);
+        }
+      } else if (reflectionMode === 'inquiry') {
+        const result = await window.guardian.reflections.analyze({ query: q, limit: 10 });
+        if (result.ok) {
+          set({
+            reflectionResults: [{ type: 'inquiry', answer: result.result.answer, sources: result.result.sources }],
+            reflectionLoading: false,
+          });
+        } else {
+          set({ reflectionResults: [], reflectionLoading: false });
+          console.warn('[store] inquiry failed:', result.error);
+        }
+      }
     } catch (e) {
       console.error('[store] searchReflections failed:', e);
       set({ reflectionResults: [], reflectionLoading: false });
@@ -1167,6 +1178,39 @@ const useStore = create((set, get) => ({
       return result;
     } catch (e) {
       console.error('[store] importReflections failed:', e);
+      return { ok: false, error: e.message };
+    }
+  },
+
+  embeddingProgress: null,
+  startEmbedding: async () => {
+    try {
+      set({ embeddingProgress: { done: 0, total: 0, status: 'starting' } });
+      await window.guardian.reflections.embed();
+      set({ embeddingProgress: { done: 0, total: 0, status: 'done' } });
+    } catch (e) {
+      set({ embeddingProgress: { done: 0, total: 0, status: 'error', errors: [e.message] } });
+    }
+  },
+  initEmbeddingProgress: () => {
+    const cleanup = window.guardian.reflections.onEmbedProgress((progress) => {
+      set({ embeddingProgress: progress });
+    });
+    return cleanup;
+  },
+
+  // ── Sovereign Layer ─────────────────────────────────────
+  setSensitivity: async (table, id, sensitivity) => {
+    try {
+      const result = await window.guardian.sovereign.setSensitivity(table, id, sensitivity);
+      if (result.ok) {
+        if (table === 'notes') get().fetchNotes();
+        if (table === 'queue_items') get().fetchQueue();
+        if (table === 'compression_levels') get().fetchCompression();
+      }
+      return result;
+    } catch (e) {
+      console.error('[store] setSensitivity failed:', e);
       return { ok: false, error: e.message };
     }
   },

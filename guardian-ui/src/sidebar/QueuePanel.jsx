@@ -13,6 +13,7 @@ function QueuePanel() {
   const skipGrounding = useStore((s) => s.skipGrounding);
   const fetchGroundingStats = useStore((s) => s.fetchGroundingStats);
   const hideGrounding = useStore((s) => s.hideGrounding);
+  const setSensitivity = useStore((s) => s.setSensitivity);
 
   const [newThread, setNewThread] = useState('');
   const [groundingType, setGroundingType] = useState(null);
@@ -34,6 +35,11 @@ function QueuePanel() {
       handleAddThread();
     }
   }, [handleAddThread]);
+
+  const cycleSensitivity = useCallback((itemId, current) => {
+    const next = current === 'surface' ? 'deep' : current === 'deep' ? 'sovereign' : 'surface';
+    setSensitivity('queue_items', itemId, next);
+  }, [setSensitivity]);
 
   const handleGroundingConfirm = useCallback((itemId) => {
     if (!groundingType) return;
@@ -71,9 +77,27 @@ function QueuePanel() {
       <div className="queue-list" role="list" aria-label="Open threads">
         {queueItems.map((item) => (
           <React.Fragment key={item.id}>
-            <div className={`queue-item queue-item--${item.status}`} role="listitem">
+            <div className={`queue-item queue-item--${item.status}${item.sensitivity && item.sensitivity !== 'surface' ? ` queue-item--${item.sensitivity}` : ''}`} role="listitem">
               <div className="queue-item__text">{item.text}</div>
               <div className="queue-item__actions">
+                {item.sensitivity && item.sensitivity !== 'surface' && (
+                  <button
+                    className={`sovereign-btn sovereign-btn--${item.sensitivity}`}
+                    onClick={() => cycleSensitivity(item.id, item.sensitivity)}
+                    title={`Sensitivity: ${item.sensitivity} (click to cycle)`}
+                  >
+                    {item.sensitivity === 'deep' ? 'D' : 'S'}
+                  </button>
+                )}
+                {(!item.sensitivity || item.sensitivity === 'surface') && (
+                  <button
+                    className="sovereign-btn"
+                    onClick={() => cycleSensitivity(item.id, 'surface')}
+                    title="Sensitivity: surface (click to cycle)"
+                  >
+                    -
+                  </button>
+                )}
                 {item.status === 'open' && (
                   <>
                     <button
