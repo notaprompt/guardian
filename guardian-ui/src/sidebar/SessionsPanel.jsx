@@ -6,6 +6,10 @@ function SessionsPanel() {
   const resumeSession = useStore((s) => s.resumeSession);
   const updateSession = useStore((s) => s.updateSession);
   const summarizeSession = useStore((s) => s.summarizeSession);
+  const graphRelationships = useStore((s) => s.graphRelationships);
+  const reframeEvents = useStore((s) => s.reframeEvents);
+  const navigateTo = useStore((s) => s.navigateTo);
+  const activeSessionId = useStore((s) => s.activeSessionId);
 
   const [summarizingIds, setSummarizingIds] = useState(new Set());
 
@@ -36,10 +40,17 @@ function SessionsPanel() {
         </div>
       )}
       <div className="search-results" role="list" aria-label="Past sessions">
-        {sessions.map((s) => (
+        {sessions.map((s) => {
+          const entityCount = new Set(
+            graphRelationships
+              .filter(r => r.session_id === s.id)
+              .flatMap(r => [r.source_entity_id, r.target_entity_id])
+          ).size;
+          const reframeCount = reframeEvents.filter(r => r.session_id === s.id).length;
+          return (
           <div
             key={s.id}
-            className="search-result"
+            className={`search-result${activeSessionId === s.id ? ' search-result--active' : ''}`}
             style={{ cursor: 'pointer' }}
             onClick={() => handleResume(s.id)}
             role="listitem"
@@ -59,6 +70,18 @@ function SessionsPanel() {
               {s.tokens_in || s.tokens_out
                 ? ` | ${((s.tokens_in || 0) + (s.tokens_out || 0)).toLocaleString()} tokens`
                 : ''}
+              {entityCount > 0 && (
+                <span className="session-badge" onClick={(e) => { e.stopPropagation(); navigateTo('graph'); }}
+                  title={`${entityCount} entities extracted`}>
+                  {entityCount} entities
+                </span>
+              )}
+              {reframeCount > 0 && (
+                <span className="session-badge session-badge--reframe"
+                  title={`${reframeCount} reframe${reframeCount > 1 ? 's' : ''} detected`}>
+                  {reframeCount} reframes
+                </span>
+              )}
             </div>
             <div className="search-result__actions">
               <button
@@ -83,7 +106,8 @@ function SessionsPanel() {
               </button>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

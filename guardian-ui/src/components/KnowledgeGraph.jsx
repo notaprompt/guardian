@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import {
   forceSimulation,
   forceLink,
@@ -47,10 +47,33 @@ function KnowledgeGraphInner() {
   const graphLoading = useStore((s) => s.graphLoading);
   const fetchGraph = useStore((s) => s.fetchGraph);
   const resumeSession = useStore((s) => s.resumeSession);
+  const notes = useStore((s) => s.notes);
+  const navigateTo = useStore((s) => s.navigateTo);
 
   const [tooltip, setTooltip] = useState(null);
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [entitySessions, setEntitySessions] = useState([]);
+
+  const relatedEntities = useMemo(() => {
+    if (!selectedEntity) return [];
+    return relationships
+      .filter(r => r.source_entity_id === selectedEntity.id || r.target_entity_id === selectedEntity.id)
+      .map(r => ({
+        id: r.id,
+        type: r.type,
+        otherId: r.source_entity_id === selectedEntity.id ? r.target_entity_id : r.source_entity_id,
+        otherName: entities.find(e => e.id === (r.source_entity_id === selectedEntity.id ? r.target_entity_id : r.source_entity_id))?.name || '?',
+      }));
+  }, [selectedEntity, relationships, entities]);
+
+  const mentionedNotes = useMemo(() => {
+    if (!selectedEntity) return [];
+    const name = selectedEntity.name.toLowerCase();
+    return notes.filter(n =>
+      (n.content || '').toLowerCase().includes(name) ||
+      (n.title || '').toLowerCase().includes(name)
+    );
+  }, [selectedEntity, notes]);
 
   // Request a single render frame when the simulation is idle (for pan/zoom/hover)
   const requestRender = useCallback(() => {
@@ -473,6 +496,32 @@ function KnowledgeGraphInner() {
                   onClick={() => resumeSession(s.id)}
                 >
                   {s.title || 'Untitled'} — {s.started_at?.slice(0, 10)}
+                </div>
+              ))}
+            </div>
+          )}
+          {relatedEntities.length > 0 && (
+            <div className="knowledge-graph__detail-section">
+              <div className="knowledge-graph__detail-label">connections</div>
+              {relatedEntities.map((r) => (
+                <div key={r.id} className="knowledge-graph__detail-relation"
+                  onClick={() => {
+                    const ent = entities.find(e => e.id === r.otherId);
+                    if (ent) setSelectedEntity(ent);
+                  }}>
+                  <span className="knowledge-graph__detail-rel-type">{r.type}</span>
+                  {r.otherName}
+                </div>
+              ))}
+            </div>
+          )}
+          {mentionedNotes.length > 0 && (
+            <div className="knowledge-graph__detail-section">
+              <div className="knowledge-graph__detail-label">notes</div>
+              {mentionedNotes.map((n) => (
+                <div key={n.id} className="knowledge-graph__detail-session"
+                  onClick={() => navigateTo('notes', { noteId: n.id })}>
+                  {n.title || 'Untitled'} -- {n.type}
                 </div>
               ))}
             </div>

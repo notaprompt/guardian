@@ -13,6 +13,7 @@ const TYPE_COLORS = {
 
 function ReframeEventCard({ event }) {
   const rateReframe = useStore((s) => s.rateReframe);
+  const navigateTo = useStore((s) => s.navigateTo);
 
   const handleRate = useCallback((accurate) => {
     rateReframe(event.id, accurate);
@@ -65,6 +66,15 @@ function ReframeEventCard({ event }) {
         >
           not me
         </button>
+        {event.session_id && (
+          <button
+            className="reframe-card__btn reframe-card__session-link"
+            onClick={() => navigateTo('sessions', { sessionId: event.session_id })}
+            title="View source session"
+          >
+            session
+          </button>
+        )}
       </div>
 
       {event.confidence && (

@@ -12,7 +12,10 @@ export default function AwarenessAlert() {
   const awareness = useStore((s) => s.awareness);
   const dismissAwareness = useStore((s) => s.dismissAwareness);
   const promoteAwareness = useStore((s) => s.promoteAwareness);
+  const sessions = useStore((s) => s.sessions);
+  const navigateTo = useStore((s) => s.navigateTo);
   const [dismissing, setDismissing] = useState(false);
+  const [showSessions, setShowSessions] = useState(false);
 
   if (!awareness || awareness.dismissed) return null;
 
@@ -53,6 +56,29 @@ export default function AwarenessAlert() {
             dismiss
           </button>
         </div>
+        {awareness.affectedSessionIds?.length > 0 && (
+          <div className="awareness-alert__sessions">
+            <button
+              className="awareness-alert__sessions-toggle"
+              onClick={() => setShowSessions(!showSessions)}
+            >
+              {showSessions ? 'hide' : 'view'} {awareness.affectedSessionIds.length} sessions
+            </button>
+            {showSessions && (
+              <div className="awareness-alert__sessions-list">
+                {awareness.affectedSessionIds.map(sid => {
+                  const s = sessions.find(sess => sess.id === sid);
+                  return (
+                    <div key={sid} className="awareness-alert__session-item"
+                      onClick={() => navigateTo('sessions', { sessionId: sid })}>
+                      {s?.title || 'Session ' + sid.slice(0, 8)}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

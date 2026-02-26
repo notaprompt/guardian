@@ -11,6 +11,9 @@ function MemoryLayers() {
   const fetchCompression = useStore((s) => s.fetchCompression);
   const updateCompressionItem = useStore((s) => s.updateCompressionItem);
   const runCompression = useStore((s) => s.runCompression);
+  const sessions = useStore((s) => s.sessions);
+  const navigateTo = useStore((s) => s.navigateTo);
+  const [expandedSourceId, setExpandedSourceId] = useState(null);
 
   useEffect(() => {
     fetchCompression();
@@ -55,9 +58,33 @@ function MemoryLayers() {
                 {Math.round((item.strength || 1) * 100)}%
               </span>
               <span>{item.created_at?.slice(0, 10)}</span>
-              {item.source_ids && (
-                <span>{JSON.parse(item.source_ids || '[]').length} sources</span>
-              )}
+              {item.source_ids && (() => {
+                const ids = JSON.parse(item.source_ids || '[]');
+                const isExpanded = expandedSourceId === item.id;
+                return (
+                  <>
+                    <span
+                      className="memory-layers__source-link"
+                      onClick={(e) => { e.stopPropagation(); setExpandedSourceId(isExpanded ? null : item.id); }}
+                    >
+                      {ids.length} sources {isExpanded ? '-' : '+'}
+                    </span>
+                    {isExpanded && (
+                      <div className="memory-layers__sources-list">
+                        {ids.map(sid => {
+                          const sess = sessions.find(sess => sess.id === sid);
+                          return (
+                            <div key={sid} className="memory-layers__source-item"
+                              onClick={() => navigateTo('sessions', { sessionId: sid })}>
+                              {sess?.title || sid.slice(0, 8) + '...'}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
               {item.status === 'pinned' && <span className="memory-layers__pin-badge">pinned</span>}
             </div>
             <div className="memory-layers__item-actions">
@@ -123,9 +150,33 @@ function MemoryLayers() {
                 {Math.round((item.strength || 1) * 100)}%
               </span>
               <span>{item.created_at?.slice(0, 10)}</span>
-              {item.source_ids && (
-                <span>{JSON.parse(item.source_ids || '[]').length} sources</span>
-              )}
+              {item.source_ids && (() => {
+                const ids = JSON.parse(item.source_ids || '[]');
+                const isExpanded = expandedSourceId === item.id;
+                return (
+                  <>
+                    <span
+                      className="memory-layers__source-link"
+                      onClick={(e) => { e.stopPropagation(); setExpandedSourceId(isExpanded ? null : item.id); }}
+                    >
+                      {ids.length} sources {isExpanded ? '-' : '+'}
+                    </span>
+                    {isExpanded && (
+                      <div className="memory-layers__sources-list">
+                        {ids.map(sid => {
+                          const sess = sessions.find(sess => sess.id === sid);
+                          return (
+                            <div key={sid} className="memory-layers__source-item"
+                              onClick={() => navigateTo('sessions', { sessionId: sid })}>
+                              {sess?.title || sid.slice(0, 8) + '...'}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
               {item.status === 'pinned' && <span className="memory-layers__pin-badge">pinned</span>}
             </div>
             <div className="memory-layers__item-actions">

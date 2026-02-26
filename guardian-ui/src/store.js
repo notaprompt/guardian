@@ -57,6 +57,13 @@ const useStore = create((set, get) => ({
 
   setActiveSessionId: (id) => set({ activeSessionId: id }),
 
+  // Cross-panel navigation for cross-links
+  navigateTo: (panel, context = {}) => {
+    set({ activeSidebarPanel: panel, sidebarCollapsed: false });
+    if (context.sessionId) set({ activeSessionId: context.sessionId });
+    if (context.noteId) set({ activeNoteId: context.noteId });
+  },
+
   setSessions: (sessions) => set({ sessions }),
 
   addSession: (session) => set((state) => ({

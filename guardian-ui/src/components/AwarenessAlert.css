@@ -94,3 +94,50 @@
   background: var(--white-04);
   color: var(--white-60);
 }
+
+/* ── Cross-Link: Affected Sessions ───────────────────────── */
+
+.awareness-alert__sessions {
+  margin-top: 8px;
+}
+
+.awareness-alert__sessions-toggle {
+  padding: 2px 8px;
+  border: 1px solid rgba(212, 168, 67, 0.15);
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(212, 168, 67, 0.7);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.awareness-alert__sessions-toggle:hover {
+  background: rgba(212, 168, 67, 0.06);
+  color: rgba(212, 168, 67, 1);
+  border-color: rgba(212, 168, 67, 0.25);
+}
+
+.awareness-alert__sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  padding-left: 4px;
+}
+
+.awareness-alert__session-item {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--white-50);
+  padding: 3px 8px;
+  border-left: 2px solid rgba(212, 168, 67, 0.2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.awareness-alert__session-item:hover {
+  color: var(--white-90);
+  background: rgba(212, 168, 67, 0.06);
+}

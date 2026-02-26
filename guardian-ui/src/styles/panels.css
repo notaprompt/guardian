@@ -3121,3 +3121,125 @@
   color: var(--white-15);
   margin-top: 4px;
 }
+
+/* ── Cross-Link: Session Badges ──────────────────────────── */
+
+.session-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border: 1px solid var(--white-08);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--white-30);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.session-badge:hover {
+  border-color: var(--glow-trace);
+  color: var(--glow);
+  background: var(--glow-dim);
+}
+
+.session-badge--reframe {
+  color: #D4A843;
+  border-color: rgba(212, 168, 67, 0.2);
+}
+
+.session-badge--reframe:hover {
+  color: #D4A843;
+  border-color: rgba(212, 168, 67, 0.4);
+  background: rgba(212, 168, 67, 0.06);
+}
+
+/* ── Cross-Link: Session Active Highlight ────────────────── */
+
+.search-result--active {
+  border-left: 2px solid var(--glow);
+  background: var(--depth-2);
+}
+
+/* ── Cross-Link: Compression Source Provenance ───────────── */
+
+.memory-layers__source-link {
+  color: var(--glow);
+  opacity: 0.7;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.memory-layers__source-link:hover {
+  opacity: 1;
+}
+
+.memory-layers__sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-left: 4px;
+  width: 100%;
+}
+
+.memory-layers__source-item {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--white-45);
+  padding: 2px 6px;
+  border-left: 2px solid var(--glow-trace);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.memory-layers__source-item:hover {
+  color: var(--glow);
+  background: var(--glow-dim);
+}
+
+/* ── Cross-Link: Reframe Session Link ────────────────────── */
+
+.reframe-card__session-link {
+  margin-left: auto;
+  color: var(--white-30);
+  border-color: var(--white-08);
+}
+
+.reframe-card__session-link:hover:not(:disabled) {
+  color: var(--glow);
+  border-color: var(--glow-trace);
+  background: var(--glow-dim);
+}
+
+/* ── Cross-Link: Entity Detail Relations ─────────────────── */
+
+.knowledge-graph__detail-relation {
+  padding: 3px 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--white-60);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease;
+}
+
+.knowledge-graph__detail-relation:hover {
+  background: var(--depth-3);
+  color: var(--white-90);
+}
+
+.knowledge-graph__detail-rel-type {
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--white-20);
+  padding: 1px 4px;
+  border: 1px solid var(--white-08);
+  border-radius: 3px;
+  flex-shrink: 0;
+}
