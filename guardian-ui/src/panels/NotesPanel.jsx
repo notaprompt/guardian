@@ -140,12 +140,22 @@ function NotesPanelInner() {
     setShowVersions(false);
   }, [addNote, noteTypeFilter]);
 
-  // Delete active note
+  // Delete active note (two-click confirmation)
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   const handleDelete = useCallback(() => {
     if (!activeNoteId) return;
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
     deleteNote(activeNoteId);
+    setConfirmDelete(false);
     setShowVersions(false);
-  }, [activeNoteId, deleteNote]);
+  }, [activeNoteId, deleteNote, confirmDelete]);
+
+  // Reset confirm state when switching notes
+  useEffect(() => { setConfirmDelete(false); }, [activeNoteId]);
 
   // Type label for display
   const typeLabel = useCallback((type) => {
@@ -277,11 +287,11 @@ function NotesPanelInner() {
                       history
                     </button>
                     <button
-                      className="notes-editor__btn notes-editor__btn--danger"
+                      className={`notes-editor__btn notes-editor__btn--danger${confirmDelete ? ' notes-editor__btn--confirm' : ''}`}
                       onClick={handleDelete}
-                      title="Delete note"
+                      title={confirmDelete ? 'Click again to confirm' : 'Delete note'}
                     >
-                      delete
+                      {confirmDelete ? 'confirm?' : 'delete'}
                     </button>
                   </div>
                 </div>

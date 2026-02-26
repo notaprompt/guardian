@@ -123,7 +123,7 @@ const COMMANDS = [
 
   // Layout
   { id: 'maximize-panel',  name: 'Maximize Focused Panel',   icon: '\u2922', category: 'layout',    shortcut: 'Ctrl+Shift+M', desc: 'Expand current panel, collapse others',
-    action: () => { /* maximize wired when panel resizing ships */ } },
+    action: () => { useStore.getState().toggleMaximizedPanel(); } },
 
   // Settings
   { id: 'open-settings',   name: 'Open Settings',            icon: '\u2699', category: 'settings',  shortcut: 'Ctrl+,', desc: 'Configure Guardian preferences',
