@@ -16,6 +16,7 @@ const CommandPalette = lazy(() => import('./components/CommandPalette'));
 const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
 const Onboarding = lazy(() => import('./components/Onboarding'));
 const TerminalWindow = lazy(() => import('./components/TerminalWindow'));
+const ProcessGuide = lazy(() => import('./components/ProcessGuide'));
 
 /*
   Navigation Instruments:
@@ -78,6 +79,8 @@ export default function App() {
   const fetchModelSettings = useStore((s) => s.fetchModelSettings);
   const setLastAutoTier = useStore((s) => s.setLastAutoTier);
   const loadA11yPreferences = useStore((s) => s.loadA11yPreferences);
+  const loadGuide = useStore((s) => s.loadGuide);
+  const processGuideOpen = useStore((s) => s.processGuideOpen);
   const toggleSidebar = useStore((s) => s.toggleSidebar);
   const pipelineStatus = useStore((s) => s.pipelineStatus);
   const initPipeline = useStore((s) => s.initPipeline);
@@ -124,8 +127,9 @@ export default function App() {
     fetchModelSettings();
     loadLayout();
     loadA11yPreferences();
+    loadGuide();
     initPipeline();
-  }, [setSystemInfo, fetchSessions, fetchNotes, fetchQueue, fetchProfile, fetchModelSettings, loadLayout, loadA11yPreferences, initPipeline]);
+  }, [setSystemInfo, fetchSessions, fetchNotes, fetchQueue, fetchProfile, fetchModelSettings, loadLayout, loadA11yPreferences, loadGuide, initPipeline]);
 
   // Subscribe to telemetry pushes from main process
   useEffect(() => {
@@ -519,6 +523,13 @@ export default function App() {
       <Suspense fallback={null}>
         <SettingsPanel />
       </Suspense>
+
+      {/* ── Process Guide Overlay (lazy-loaded) ──── */}
+      {processGuideOpen && (
+        <Suspense fallback={null}>
+          <ProcessGuide />
+        </Suspense>
+      )}
     </div>
     </TerminalHostContext.Provider>
   );

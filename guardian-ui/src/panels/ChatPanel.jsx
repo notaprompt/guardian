@@ -7,6 +7,7 @@ import TokenUsage from '../components/TokenUsage';
 import ThinkingIndicator from '../components/ThinkingIndicator';
 import AwarenessAlert from '../components/AwarenessAlert';
 import SessionContext from '../components/SessionContext';
+import FirstSessionGuide from '../components/FirstSessionGuide';
 import useStore from '../store';
 
 function ChatPanelInner() {
@@ -434,6 +435,8 @@ function ChatPanelInner() {
             </div>
           </div>
         )}
+
+        <FirstSessionGuide />
 
         {/* Librarian extraction status */}
         {librarianStatus && (

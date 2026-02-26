@@ -309,6 +309,7 @@ const useStore = create((set, get) => ({
         compressionL3: l3?.ok ? l3.items : [],
         compressionStats: stats?.ok ? { l2Count: stats.l2 || 0, l3Count: stats.l3 || 0 } : { l2Count: 0, l3Count: 0 },
       });
+      get().checkTabUnlocks();
     } catch (e) {
       console.error('[store] fetchCompression failed:', e);
     }
@@ -762,6 +763,7 @@ const useStore = create((set, get) => ({
         graphRelationships: relResult?.ok ? relResult.relationships : [],
         graphLoading: false,
       });
+      get().checkTabUnlocks();
     } catch (e) {
       console.error('[store] fetchGraph failed:', e);
       set({ graphLoading: false });
@@ -979,6 +981,7 @@ const useStore = create((set, get) => ({
       if (Array.isArray(events)) {
         set({ reframeEvents: events });
       }
+      get().checkTabUnlocks();
     } catch (e) {
       console.error('[store] fetchReframeEvents failed:', e);
     }
@@ -1162,6 +1165,7 @@ const useStore = create((set, get) => ({
       if (result.ok) {
         set({ reflectionStats: result.stats });
       }
+      get().checkTabUnlocks();
     } catch (e) {
       console.error('[store] loadReflectionStats failed:', e);
     }
@@ -1214,6 +1218,59 @@ const useStore = create((set, get) => ({
       return { ok: false, error: e.message };
     }
   },
+
+  // ── Process Flow Guide ─────────────────────────────────
+  guide: { firstSessionDone: false, tabsUnlocked: ['notes', 'queue', 'search', 'sessions', 'terminal'], docsViewed: [] },
+  newlyUnlockedTab: null,
+  processGuideOpen: false,
+
+  loadGuide: async () => {
+    try {
+      const saved = await window.guardian?.config?.get('guide');
+      const defaults = { firstSessionDone: false, tabsUnlocked: ['notes', 'queue', 'search', 'sessions', 'terminal'], docsViewed: [] };
+      set({ guide: saved ? { ...defaults, ...saved } : defaults });
+    } catch (e) {
+      console.error('[store] loadGuide failed:', e);
+    }
+  },
+
+  updateGuide: (patch) => {
+    const merged = { ...get().guide, ...patch };
+    set({ guide: merged });
+    window.guardian?.config?.set('guide', merged);
+  },
+
+  markFirstSessionDone: () => {
+    get().updateGuide({ firstSessionDone: true });
+  },
+
+  checkTabUnlocks: () => {
+    const { guide, graphEntities, reframeEvents, compressionL2, compressionL3, reflectionStats } = get();
+    const thresholds = {
+      graph: graphEntities.length >= 3,
+      drift: reframeEvents.length >= 1,
+      memory: (compressionL2.length + compressionL3.length) >= 1,
+      reflections: reflectionStats?.conversations > 0,
+    };
+    const current = new Set(guide.tabsUnlocked);
+    let changed = false;
+    let newest = null;
+    for (const [tab, met] of Object.entries(thresholds)) {
+      if (met && !current.has(tab)) {
+        current.add(tab);
+        changed = true;
+        newest = tab;
+      }
+    }
+    if (changed) {
+      const unlocked = [...current];
+      get().updateGuide({ tabsUnlocked: unlocked });
+      set({ newlyUnlockedTab: newest });
+    }
+  },
+
+  showProcessGuide: () => set({ processGuideOpen: true }),
+  hideProcessGuide: () => set({ processGuideOpen: false }),
 
   // ── App Meta ────────────────────────────────────────────
   systemInfo: null,

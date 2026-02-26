@@ -72,6 +72,8 @@ const NAV_ITEMS = [
   )},
 ];
 
+const ADVANCED_TABS = new Set(['graph', 'drift', 'memory', 'reflections']);
+
 function ActivityBar() {
   const activeSidebarPanel = useStore((s) => s.activeSidebarPanel);
   const sidebarCollapsed = useStore((s) => s.sidebarCollapsed);
@@ -82,6 +84,9 @@ function ActivityBar() {
   const toggleTerminalWindow = useStore((s) => s.toggleTerminalWindow);
   const terminalWindowOpen = useStore((s) => s.terminalWindowOpen);
   const terminalWindowMinimized = useStore((s) => s.terminalWindowMinimized);
+  const tabsUnlocked = useStore((s) => s.guide.tabsUnlocked);
+  const newlyUnlockedTab = useStore((s) => s.newlyUnlockedTab);
+  const showProcessGuide = useStore((s) => s.showProcessGuide);
 
   const badges = { queueUnresolved, reframeUnacknowledged };
 
@@ -93,15 +98,24 @@ function ActivityBar() {
             ? terminalWindowOpen && !terminalWindowMinimized
             : activeSidebarPanel === item.id && !sidebarCollapsed;
           const badgeCount = item.badge ? badges[item.badge] : 0;
+          const isLocked = ADVANCED_TABS.has(item.id) && !tabsUnlocked.includes(item.id);
+          const isNewlyUnlocked = newlyUnlockedTab === item.id;
+          let cls = 'activity-bar__btn';
+          if (isActive) cls += ' activity-bar__btn--active';
+          if (isLocked) cls += ' activity-bar__btn--locked';
+          if (isNewlyUnlocked) cls += ' activity-bar__btn--newly-unlocked';
           return (
             <button
               key={item.id}
-              className={`activity-bar__btn${isActive ? ' activity-bar__btn--active' : ''}`}
+              className={cls}
               onClick={() => item.special ? toggleTerminalWindow() : setActiveSidebarPanel(item.id)}
               data-tooltip={item.tooltip}
               role="tab"
               aria-selected={isActive}
               aria-label={item.tooltip}
+              ref={isNewlyUnlocked ? (el) => {
+                if (el) setTimeout(() => useStore.setState({ newlyUnlockedTab: null }), 2000);
+              } : undefined}
             >
               {item.icon}
               {badgeCount > 0 && (
@@ -112,6 +126,18 @@ function ActivityBar() {
         })}
       </div>
       <div className="activity-bar__bottom">
+        <button
+          className="activity-bar__btn"
+          onClick={showProcessGuide}
+          data-tooltip="How It Works"
+          aria-label="How Guardian works"
+        >
+          <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="9" cy="9" r="6.5" />
+            <path d="M7 7a2 2 0 1 1 2.5 1.94c-.3.1-.5.36-.5.68V11" />
+            <circle cx="9" cy="13.5" r="0.5" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
         <button
           className="activity-bar__btn"
           onClick={toggleSettings}

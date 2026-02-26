@@ -170,6 +170,10 @@ const COMMANDS = [
       const result = await window.guardian?.import?.obsidian();
       if (result?.ok && result.importedCount > 0) store.fetchNotes();
     }},
+
+  // Help
+  { id: 'process-guide',    name: 'Guardian: How It Works',   icon: '?',  category: 'help',      desc: 'Learn how Guardian features work together',
+    action: (store) => store.showProcessGuide() },
 ];
 
 const CATEGORY_LABELS = {
@@ -181,9 +185,10 @@ const CATEGORY_LABELS = {
   layout: 'Layout',
   settings: 'Settings',
   backup: 'Backup & Data',
+  help: 'Help',
 };
 
-const CATEGORY_ORDER = ['recent', 'navigation', 'session', 'notes', 'memory', 'layout', 'settings', 'backup'];
+const CATEGORY_ORDER = ['recent', 'navigation', 'session', 'notes', 'memory', 'layout', 'settings', 'backup', 'help'];
 
 // ── Component ────────────────────────────────────────────────
 function CommandPaletteInner() {

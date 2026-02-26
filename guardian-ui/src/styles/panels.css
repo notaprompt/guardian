@@ -3411,3 +3411,114 @@
 .queue-item--sovereign {
   border-left: 2px solid #d4a017;
 }
+
+/* ── Process Flow Guide ──────────────────────────────────── */
+
+/* Locked activity bar tab */
+.activity-bar__btn--locked { opacity: 0.3; }
+.activity-bar__btn--locked:hover { opacity: 0.5; }
+
+/* Newly unlocked tab pulse */
+@keyframes tab-unlock-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.activity-bar__btn--newly-unlocked {
+  animation: tab-unlock-pulse 0.5s ease 3;
+}
+
+/* First session guide */
+.first-session-guide {
+  margin: 8px 12px;
+  padding: 10px 12px;
+  background: var(--depth-2);
+  border: 1px solid var(--white-08);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--white-60);
+  line-height: 1.5;
+}
+.first-session-guide__title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--white-80);
+  margin-bottom: 6px;
+}
+.first-session-guide__dismiss {
+  margin-top: 8px;
+  font-size: 11px;
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid var(--white-08);
+  color: var(--white-40);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.first-session-guide__dismiss:hover {
+  color: var(--white-60);
+  border-color: var(--white-20);
+}
+
+/* Process guide overlay */
+.process-guide-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.process-guide {
+  width: 560px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--depth-1);
+  border: 1px solid var(--white-08);
+  border-radius: 6px;
+  padding: 24px;
+  color: var(--white-80);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.process-guide__title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--white-90);
+  margin-bottom: 16px;
+}
+.process-guide__section {
+  margin-bottom: 20px;
+}
+.process-guide__section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--glow);
+  margin-bottom: 8px;
+}
+.process-guide__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  color: var(--white-40);
+  cursor: pointer;
+}
+.process-guide__close:hover { color: var(--white-80); }
+.process-guide__feature {
+  margin-bottom: 12px;
+}
+.process-guide__feature-name {
+  font-weight: 500;
+  color: var(--white-70);
+}
+.process-guide__hero {
+  padding: 12px;
+  background: var(--depth-2);
+  border-radius: 4px;
+  border-left: 2px solid var(--glow);
+  font-style: italic;
+  color: var(--white-60);
+}
