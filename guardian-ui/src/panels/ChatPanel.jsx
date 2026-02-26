@@ -1,4 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import PanelHeader from '../components/PanelHeader';
 import TokenUsage from '../components/TokenUsage';
 import ThinkingIndicator from '../components/ThinkingIndicator';
@@ -352,7 +355,15 @@ function ChatPanelInner() {
             {msg.role === 'assistant' && !msg.content && chatIsResponding && !thinkingBlocks[msg.id] && (
               <span className="chat-thinking" role="status" aria-live="polite">Thinking...</span>
             )}
-            <span className="chat-message__content">{msg.content}</span>
+            <div className="chat-message__content">
+              {msg.role === 'user' ? (
+                msg.content
+              ) : (
+                <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                  {msg.content}
+                </Markdown>
+              )}
+            </div>
           </div>
         ))}
 

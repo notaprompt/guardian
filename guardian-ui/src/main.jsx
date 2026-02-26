@@ -7,6 +7,7 @@ import './styles/sidebar.css';
 import './styles/terminal.css';
 import './styles/terminal-window.css';
 import './styles/accessibility.css';
+import 'highlight.js/styles/github-dark-dimmed.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
