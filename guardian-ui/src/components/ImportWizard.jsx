@@ -78,6 +78,8 @@ export default function ImportWizard({ onNavigateToExplorer }) {
   const [activeBatchId, setActiveBatchId] = useState(null);
   const [error, setError] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [journalExporting, setJournalExporting] = useState(false);
+  const [journalResult, setJournalResult] = useState(null);
 
   // Fetch batch history on mount
   useEffect(() => {
@@ -198,6 +200,20 @@ export default function ImportWizard({ onNavigateToExplorer }) {
     setStep('complete');
   }, [activeBatchId, fetchImportBatches]);
 
+  const handleExportJournal = useCallback(async () => {
+    if (!filePath) return;
+    setJournalExporting(true);
+    setJournalResult(null);
+    try {
+      const result = await window.guardian?.import?.conversations?.exportJournal(filePath);
+      setJournalResult(result);
+    } catch (e) {
+      setJournalResult({ ok: false, error: e.message || 'Export failed' });
+    } finally {
+      setJournalExporting(false);
+    }
+  }, [filePath]);
+
   const handleReset = useCallback(() => {
     setStep('upload');
     setFilePath(null);
@@ -207,6 +223,8 @@ export default function ImportWizard({ onNavigateToExplorer }) {
     setImportStats(null);
     setActiveBatchId(null);
     setError(null);
+    setJournalExporting(false);
+    setJournalResult(null);
   }, []);
 
   return (
@@ -277,8 +295,34 @@ export default function ImportWizard({ onNavigateToExplorer }) {
           </div>
           <div className="import-wizard__actions">
             <button className="settings-link" onClick={handleReset}>Back</button>
-            <button className="import-wizard__confirm" onClick={handleStartImport}>Import</button>
+            <button
+              className="import-wizard__confirm"
+              onClick={handleExportJournal}
+              disabled={journalExporting}
+            >
+              {journalExporting ? 'Exporting...' : 'Journal Only'}
+            </button>
+            <button className="import-wizard__confirm" onClick={handleStartImport}>Import to Guardian</button>
           </div>
+          {journalResult && (
+            <div className={`import-wizard__journal-result${journalResult.ok ? '' : ' import-wizard__journal-result--error'}`}>
+              {journalResult.ok ? (
+                <>
+                  <div className="import-wizard__journal-stat">
+                    {journalResult.stats?.conversations || 0} conversations exported
+                  </div>
+                  <div className="import-wizard__journal-stat">
+                    {journalResult.stats?.trainingConversations || 0} training examples written
+                  </div>
+                  {journalResult.files?.map((f, i) => (
+                    <div key={i} className="import-wizard__journal-file">{f.split(/[\\/]/).slice(-2).join('/')}</div>
+                  ))}
+                </>
+              ) : journalResult.canceled ? null : (
+                <div>{journalResult.error || 'Export failed'}</div>
+              )}
+            </div>
+          )}
         </>
       )}
 
@@ -338,8 +382,34 @@ export default function ImportWizard({ onNavigateToExplorer }) {
                 View in Memory Explorer
               </button>
             )}
+            <button
+              className="import-wizard__confirm"
+              onClick={handleExportJournal}
+              disabled={journalExporting || !filePath}
+            >
+              {journalExporting ? 'Exporting...' : 'Export as Journal + Training Data'}
+            </button>
             <button className="settings-link" onClick={handleReset}>Import another file</button>
           </div>
+          {journalResult && (
+            <div className={`import-wizard__journal-result${journalResult.ok ? '' : ' import-wizard__journal-result--error'}`}>
+              {journalResult.ok ? (
+                <>
+                  <div className="import-wizard__journal-stat">
+                    {journalResult.stats?.conversations || 0} conversations exported
+                  </div>
+                  <div className="import-wizard__journal-stat">
+                    {journalResult.stats?.trainingConversations || 0} training examples
+                  </div>
+                  {journalResult.files?.map((f, i) => (
+                    <div key={i} className="import-wizard__journal-file">{f.split(/[\\/]/).slice(-2).join('/')}</div>
+                  ))}
+                </>
+              ) : (
+                <div>{journalResult.error || 'Export failed'}</div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </>

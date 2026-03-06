@@ -34,6 +34,7 @@ const exporter = require('./lib/exporter');
 const importer = require('./lib/importer');
 const importParser = require('./lib/import-parser');
 const importWorker = require('./lib/import-worker');
+const journalExporter = require('./lib/journal-exporter');
 const metrics = require('./lib/metrics');
 const perf = require('./lib/performance');
 const librarian = require('./lib/librarian');
@@ -2030,6 +2031,61 @@ ipcMain.handle('guardian:import:conversations:batches', () => {
   } catch (e) {
     log.error('Conversation import batches list failed:', e.message);
     return { ok: false, error: e.message, batches: [] };
+  }
+});
+
+// ── Journal Export (ChatGPT / Claude → Markdown + Training JSONL) ──
+
+ipcMain.handle('guardian:import:conversations:exportJournal', async (event, { filePath }) => {
+  try {
+    // Parse the file (same parser used by import)
+    const parsed = importParser.parseFile(filePath);
+    if (parsed.conversations.length === 0) {
+      return { ok: false, error: 'No conversations found in file', parseErrors: parsed.errors };
+    }
+
+    // Let user pick output directory
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory', 'createDirectory'],
+      title: 'Choose journal output folder',
+    });
+    if (result.canceled || result.filePaths.length === 0) {
+      return { ok: false, canceled: true };
+    }
+
+    const outputDir = path.join(result.filePaths[0], 'journal');
+    const writeResult = journalExporter.writeJournal(parsed.conversations, outputDir);
+
+    return {
+      ok: writeResult.ok,
+      files: writeResult.files,
+      stats: writeResult.stats,
+      parseErrors: parsed.errors,
+      error: writeResult.error || null,
+    };
+  } catch (e) {
+    log.error('Journal export failed:', e.message);
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:import:conversations:exportJournalAuto', (event, { filePath, outputDir }) => {
+  try {
+    const parsed = importParser.parseFile(filePath);
+    if (parsed.conversations.length === 0) {
+      return { ok: false, error: 'No conversations found in file' };
+    }
+
+    const writeResult = journalExporter.writeJournal(parsed.conversations, outputDir);
+    return {
+      ok: writeResult.ok,
+      files: writeResult.files,
+      stats: writeResult.stats,
+      error: writeResult.error || null,
+    };
+  } catch (e) {
+    log.error('Journal auto-export failed:', e.message);
+    return { ok: false, error: e.message };
   }
 });
 

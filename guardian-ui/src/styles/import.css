@@ -342,6 +342,35 @@
   font-size: 10px;
 }
 
+/* Journal export result */
+.import-wizard__journal-result {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(108, 180, 140, 0.06);
+  border: 1px solid rgba(108, 180, 140, 0.15);
+  border-radius: 4px;
+  text-align: left;
+}
+
+.import-wizard__journal-result--error {
+  background: rgba(199, 80, 80, 0.06);
+  border-color: rgba(199, 80, 80, 0.15);
+  color: var(--danger);
+}
+
+.import-wizard__journal-stat {
+  color: var(--white-70);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.import-wizard__journal-file {
+  color: var(--white-45);
+  font-size: 10px;
+  font-family: var(--mono);
+  padding: 2px 0;
+}
+
 /* ── Memory Explorer ────────────────────────────────────── */
 
 .memory-explorer {

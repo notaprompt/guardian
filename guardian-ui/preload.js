@@ -241,6 +241,8 @@ contextBridge.exposeInMainWorld('guardian', {
       cancel: (batchId) => ipcRenderer.invoke('guardian:import:conversations:cancel', { batchId }),
       status: (batchId) => ipcRenderer.invoke('guardian:import:conversations:status', { batchId }),
       batches: () => ipcRenderer.invoke('guardian:import:conversations:batches'),
+      exportJournal: (filePath) => ipcRenderer.invoke('guardian:import:conversations:exportJournal', { filePath }),
+      exportJournalAuto: (filePath, outputDir) => ipcRenderer.invoke('guardian:import:conversations:exportJournalAuto', { filePath, outputDir }),
       onProgress: (callback) => {
         const handler = (_event, payload) => callback(payload);
         ipcRenderer.on('guardian:import:conversations:progress', handler);
