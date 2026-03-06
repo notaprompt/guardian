@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guardian — Neuroprotective Cognitive Infrastructure</title>
-  <meta name="description" content="Guardian is external cognitive infrastructure for minds that don't turn off. Grounded in the Topological-Recursive Identity Model (TRIM).">
+  <title>Guardian — Local-First Desktop for Persistent Thinking</title>
+  <meta name="description" content="Desktop app that stores, compresses, and retrieves everything you think through. Local SQLite. No telemetry. Your data stays on your machine.">
   <meta name="theme-color" content="#050505">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Guardian — Neuroprotective Cognitive Infrastructure">
-  <meta property="og:description" content="External cognitive infrastructure for minds that don't turn off.">
+  <meta property="og:title" content="Guardian — Local-First Desktop for Persistent Thinking">
+  <meta property="og:description" content="Desktop app that stores, compresses, and retrieves everything you think through. Local-first. Sovereign by default.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/og-image.png">
 
@@ -40,7 +40,7 @@
       <a href="#problem" class="nav__link">Why</a>
       <a href="#features" class="nav__link">Features</a>
       <a href="#cockpit" class="nav__link">Cockpit</a>
-      <a href="#architecture" class="nav__link">TRIM</a>
+      <a href="#architecture" class="nav__link">Architecture</a>
       <a href="https://github.com/notaprompt" class="nav__cta" target="_blank" rel="noopener noreferrer">Get Early Access</a>
     </div>
     <button class="nav__toggle" aria-label="Toggle navigation" aria-expanded="false">
@@ -54,7 +54,7 @@
     <a href="#problem" class="mobile-menu__link">Why</a>
     <a href="#features" class="mobile-menu__link">Features</a>
     <a href="#cockpit" class="mobile-menu__link">Cockpit</a>
-    <a href="#architecture" class="mobile-menu__link">TRIM</a>
+    <a href="#architecture" class="mobile-menu__link">Architecture</a>
     <a href="https://github.com/notaprompt" class="mobile-menu__cta" target="_blank" rel="noopener noreferrer">Get Early Access</a>
   </div>
 
@@ -70,8 +70,8 @@
           <div class="hero__glyph-ring hero__glyph-ring--outer"></div>
         </div>
         <h1 class="hero__title reveal">Guardian</h1>
-        <p class="hero__tagline reveal reveal--delay-1">External cognitive infrastructure<br>for minds that don't turn off.</p>
-        <p class="hero__sub reveal reveal--delay-2">Grounded in the Topological-Recursive Identity Model (TRIM)</p>
+        <p class="hero__tagline reveal reveal--delay-1">Your thinking persists<br>instead of evaporating.</p>
+        <p class="hero__sub reveal reveal--delay-2">Desktop app. Local SQLite. Memory, chat, terminal, notes. One window.</p>
         <div class="hero__actions reveal reveal--delay-3">
           <a href="https://github.com/notaprompt" class="btn btn--primary" target="_blank" rel="noopener noreferrer">Get Early Access</a>
           <a href="#problem" class="btn btn--ghost">Learn More</a>
@@ -89,38 +89,38 @@
       <div class="container">
         <div class="section-label reveal">The Problem</div>
         <h2 class="problem__heading reveal">
-          You already know what's happening.<br>
-          <span class="text-glow">That's the problem.</span>
+          Chat sessions evaporate.<br>
+          <span class="text-glow">Your thinking shouldn't.</span>
         </h2>
         <div class="problem__grid">
           <div class="problem__card reveal">
             <div class="problem__icon">&#9632;</div>
             <p class="problem__text">
-              Your mind doesn't have an off switch. Every insight propagates.
-              Every unresolved thread stays resident. Every loop re-derives
-              from scratch because nothing persists outside your head.
+              You solved this problem last month. You know you did.
+              But the conversation is gone, the context is gone,
+              so you rebuild from scratch.
             </p>
           </div>
           <div class="problem__card reveal">
             <div class="problem__icon">&#9632;</div>
             <p class="problem__text">
-              You've tried the tools. Note apps that add organizational overhead.
-              Chat wrappers that forget everything. Second-brain systems that
-              require you to be the librarian of your own thoughts.
+              Note apps add organizational overhead. Chat wrappers forget
+              everything. Second-brain tools require you to be the librarian
+              of your own thoughts.
             </p>
           </div>
           <div class="problem__card reveal">
             <div class="problem__icon">&#9632;</div>
             <p class="problem__text">
-              The cost isn't just time. It's substrate. Every thought held internally,
-              every loop re-run, every insight re-derived is metabolic wear on the
-              very infrastructure that makes you <em>you</em>.
+              Every insight you re-derive is time spent on something
+              you already figured out. The solution is persistent memory
+              that retrieves what you need, when you need it.
             </p>
           </div>
         </div>
         <p class="problem__closing reveal">
-          Guardian exists because you shouldn't have to choose between<br class="hide-mobile">
-          the depth of your thinking and the longevity of the architecture that produces it.
+          Guardian stores, compresses, and retrieves everything you think through.<br class="hide-mobile">
+          On your machine. Searchable. Yours.
         </p>
       </div>
     </section>
@@ -132,53 +132,51 @@
       <div class="container">
         <div class="section-label reveal">Capabilities</div>
         <h2 class="features__heading reveal">
-          Everything persists.<br>
-          <span class="text-glow">Nothing is lost.</span>
+          What it does.
         </h2>
         <div class="features__grid">
 
           <article class="feature-card reveal">
             <div class="feature-card__number">01</div>
-            <h3 class="feature-card__title">Memory Engine</h3>
+            <h3 class="feature-card__title">Persistent Memory</h3>
             <p class="feature-card__desc">
-              Every conversation, every artifact, every moment of clarity at 3am —
-              captured, compressed, retrievable at the right resolution. Raw transcript
-              when you need detail. Distilled patterns when you need perspective.
-              A living memory that grows with you.
+              Every conversation stored locally. Three-level compression:
+              session summaries, extracted patterns, distilled principles.
+              Raw detail when you need it. Compressed knowledge when you don't.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Full-text search</span>
-              <span class="tag">Vector embeddings</span>
+              <span class="tag">Semantic retrieval</span>
               <span class="tag">Session continuity</span>
             </div>
           </article>
 
           <article class="feature-card reveal">
             <div class="feature-card__number">02</div>
-            <h3 class="feature-card__title">Navigation Instruments</h3>
+            <h3 class="feature-card__title">Session Instruments</h3>
             <p class="feature-card__desc">
-              Token burn rate. Session depth. Integration queue. Ambient state orbs
-              that respond to your cognitive load. The telemetry of your own process,
+              Token usage. Session depth. Integration queue status.
+              The information you need about your current session,
               visible without demanding attention.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Session telemetry</span>
               <span class="tag">Integration queue</span>
-              <span class="tag">Ambient orbs</span>
+              <span class="tag">Usage tracking</span>
             </div>
           </article>
 
           <article class="feature-card reveal">
             <div class="feature-card__number">03</div>
-            <h3 class="feature-card__title">TRIM-Aware Chat</h3>
+            <h3 class="feature-card__title">Chat with Context</h3>
             <p class="feature-card__desc">
-              Not just a Claude interface. Context injection from your memory engine.
-              Awareness-trap detection. Session continuity that means you never have
-              to say "remember when we talked about..."
+              Multi-provider chat with automatic context injection from
+              your memory. Past conversations surface when relevant.
+              You never have to say "remember when we talked about..."
             </p>
             <div class="feature-card__tags">
               <span class="tag">Context injection</span>
-              <span class="tag">Awareness-trap detection</span>
+              <span class="tag">Multi-provider</span>
               <span class="tag">Thinking display</span>
             </div>
           </article>
@@ -187,29 +185,29 @@
             <div class="feature-card__number">04</div>
             <h3 class="feature-card__title">Integrated Terminal</h3>
             <p class="feature-card__desc">
-              A real PTY, not a simulation. Split panes. Command history captured
-              and searchable. Terminal-to-chat bridge: select an error, ask Guardian,
-              get an answer. No context-switching cost.
+              Real PTY, not emulation. Docks inline or floats as a
+              separate window. Command history captured and searchable.
+              No context-switching between terminal and chat.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Real PTY</span>
-              <span class="tag">Split panes</span>
-              <span class="tag">Chat bridge</span>
+              <span class="tag">Dock / float</span>
+              <span class="tag">Searchable history</span>
             </div>
           </article>
 
           <article class="feature-card reveal">
             <div class="feature-card__number">05</div>
-            <h3 class="feature-card__title">Notes System</h3>
+            <h3 class="feature-card__title">Notes</h3>
             <p class="feature-card__desc">
-              Three modes of externalization: scratch notes for the 3am thought,
-              structured notes for design documents, journal entries for the
-              observational practice that precedes navigation.
+              Three modes: scratch for quick capture, structured for
+              documents, journal for longer-form writing. Full version
+              history. Mark anything sovereign to exclude it from chat context.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Scratch capture</span>
-              <span class="tag">Markdown editing</span>
-              <span class="tag">Memory integration</span>
+              <span class="tag">Markdown</span>
+              <span class="tag">Version history</span>
             </div>
           </article>
 
@@ -217,15 +215,14 @@
             <div class="feature-card__number">06</div>
             <h3 class="feature-card__title">Knowledge Graph</h3>
             <p class="feature-card__desc">
-              Entities, relationships, and conceptual topology extracted from your
-              conversations. See the structure of your thinking — not just search
-              through it linearly. A map that grows denser and more useful the
-              longer you use it.
+              Entities and relationships extracted from conversations
+              automatically. Stored in SQLite, visualized with force-directed
+              layout. See the structure of what you've been working on.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Entity extraction</span>
               <span class="tag">Relationship mapping</span>
-              <span class="tag">Force-directed visualization</span>
+              <span class="tag">Interactive visualization</span>
             </div>
           </article>
 
@@ -244,9 +241,8 @@
           <span class="text-glow">A cockpit.</span>
         </h2>
         <p class="cockpit__desc reveal">
-          Everything visible simultaneously. Terminal, chat, notes, artifacts — all present,
-          all accessible without mode changes. Keyboard-first. Resizable panels. Built for
-          minds that don't context-switch cleanly.
+          Terminal, chat, notes, artifacts -- all visible simultaneously.
+          Resizable panels. Keyboard-first. No mode changes.
         </p>
         <div class="cockpit__showcase reveal">
           <div class="cockpit__window">
@@ -263,7 +259,7 @@
                   <code class="cockpit__code">
                     <span class="cockpit__prompt">~</span> <span class="cockpit__cmd">guardian --resume</span><br>
                     <span class="cockpit__output">Session restored. 847 messages indexed.</span><br>
-                    <span class="cockpit__output">Memory engine: 2,341 artifacts cached.</span><br>
+                    <span class="cockpit__output">Memory: 2,341 artifacts cached.</span><br>
                     <span class="cockpit__prompt">~</span> <span class="cockpit__cursor">|</span>
                   </code>
                 </div>
@@ -272,19 +268,19 @@
                 <div class="cockpit__panel-header">Chat</div>
                 <div class="cockpit__panel-content">
                   <div class="cockpit__message cockpit__message--user">
-                    that thread about thermodynamic consciousness — what did we land on?
+                    that thread about the routing architecture -- what did we land on?
                   </div>
                   <div class="cockpit__message cockpit__message--assistant">
                     <span class="cockpit__thinking">[thinking...]</span>
-                    From your session on Jan 14 — you concluded that...
+                    From your session on Jan 14 -- you concluded that...
                   </div>
                 </div>
               </div>
               <div class="cockpit__panel cockpit__panel--notes">
                 <div class="cockpit__panel-header">Notes</div>
                 <div class="cockpit__panel-content">
-                  <div class="cockpit__note-item">scratch: 3am insight re: coupling</div>
-                  <div class="cockpit__note-item cockpit__note-item--active">structured: TRIM v6 notes</div>
+                  <div class="cockpit__note-item">scratch: proxy integration notes</div>
+                  <div class="cockpit__note-item cockpit__note-item--active">structured: architecture doc</div>
                   <div class="cockpit__note-item">journal: Feb 8 reflection</div>
                 </div>
               </div>
@@ -310,71 +306,68 @@
     </section>
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- ARCHITECTURE / TRIM                                     -->
+    <!-- ARCHITECTURE                                            -->
     <!-- ═══════════════════════════════════════════════════════ -->
     <section id="architecture" class="architecture">
       <div class="container">
-        <div class="section-label reveal">The Foundation</div>
+        <div class="section-label reveal">How It Works</div>
         <h2 class="architecture__heading reveal">
-          Grounded in theory.<br>
-          <span class="text-glow">Built on TRIM.</span>
+          Local-first.<br>
+          <span class="text-glow">Sovereign by default.</span>
         </h2>
         <div class="architecture__content">
           <div class="architecture__text reveal">
             <p>
-              The Topological-Recursive Identity Model makes a specific, falsifiable prediction:
-              individuals who consistently externalize recursive structure — systematic logging,
-              structured AI interaction, retrievable written architecture — should show measurably
-              reduced substrate wear compared to those who hold equivalent depth internally.
+              Guardian runs entirely on your machine. SQLite for storage.
+              Full-text search for retrieval. No cloud dependency for core
+              functionality. Cloud providers are optional -- for chat, not for memory.
             </p>
             <p>
-              Guardian is that externalized structure — not a vault, but a living architecture
-              that co-evolves with you. Your memory shapes what you externalize. What you
-              externalize shapes what Guardian retrieves. What Guardian retrieves shapes how
-              you think next. This is mutual poiesis: human and system growing a knowledge
-              structure together.
+              Your memory shapes what gets stored. What gets stored shapes what
+              Guardian retrieves. What Guardian retrieves shapes your next conversation.
+              The system gets more useful the more you use it.
             </p>
             <p>
-              Every feature exists to answer one question: <strong>does this reduce the metabolic
-              cost of maintaining recursive structure internally?</strong> If it does not serve
-              that function, it does not ship.
+              Every feature answers one question: <strong>does this help you find
+              and build on what you've already figured out?</strong> If not, it
+              doesn't ship.
             </p>
           </div>
           <div class="architecture__layers reveal">
             <div class="architecture__layer">
-              <div class="architecture__layer-label">Presentation</div>
-              <div class="architecture__layer-desc">What you see and touch</div>
+              <div class="architecture__layer-label">Interface</div>
+              <div class="architecture__layer-desc">Panels, terminal, chat, notes</div>
             </div>
             <div class="architecture__layer">
-              <div class="architecture__layer-label">Cognition</div>
-              <div class="architecture__layer-desc">Where AI interaction happens</div>
+              <div class="architecture__layer-label">Chat</div>
+              <div class="architecture__layer-desc">Multi-provider with context injection</div>
             </div>
             <div class="architecture__layer">
               <div class="architecture__layer-label">Memory</div>
-              <div class="architecture__layer-desc">Where everything persists</div>
+              <div class="architecture__layer-desc">SQLite + FTS5, compression, retrieval</div>
             </div>
             <div class="architecture__layer">
-              <div class="architecture__layer-label">Substrate</div>
-              <div class="architecture__layer-desc">System-level infrastructure</div>
+              <div class="architecture__layer-label">Storage</div>
+              <div class="architecture__layer-desc">Local database, your machine</div>
             </div>
           </div>
         </div>
         <div class="architecture__principles">
           <div class="architecture__principle reveal">
-            <h3>Match the Architecture</h3>
-            <p>The interface mirrors the phenomenology of the user it serves. No context-switching. No mode changes. A cockpit, not a set of tabs.</p>
+            <h3>Everything in One Place</h3>
+            <p>No context-switching. No mode changes. Terminal, chat, notes, and artifacts in a single resizable layout.</p>
           </div>
           <div class="architecture__principle reveal">
-            <h3>Reduce Metabolic Load</h3>
-            <p>Every interaction leaves you with less internal state to maintain, not more. Chat accepts stream-of-consciousness. The system organizes.</p>
+            <h3>Less to Hold in Your Head</h3>
+            <p>Context injection means past work shows up when relevant. You think forward. Guardian handles the retrieval.</p>
           </div>
           <div class="architecture__principle reveal">
-            <h3>Persist Everything</h3>
-            <p>Nothing generated through Guardian is ever lost. The entire history is the external recursive structure. Deleting is your choice, never the system's.</p>
+            <h3>Nothing Gets Lost</h3>
+            <p>Every conversation, every note, every artifact is stored and versioned. Deleting is your choice, never the system's.</p>
           </div>
           <div class="architecture__principle reveal">
-            <h3>Make the Invisible Visible</h3>
-            <p>How many tokens burned. How conversation patterns shift under stress. Whether the integration queue is growing or shrinking. Your cognitive telemetry, surfaced.</p>
+            <h3>Your Data Stays Here</h3>
+            <p>No telemetry. No phone home. Local SQLite. Cloud providers are for chat -- your memory never leaves your machine.</p>
           </div>
         </div>
       </div>
@@ -387,7 +380,7 @@
       <div class="container">
         <div class="cta__content reveal">
           <span class="cta__glyph" aria-hidden="true">◈</span>
-          <h2 class="cta__heading">Guardian is not a tool you use.<br>It is a living structure you grow with.</h2>
+          <h2 class="cta__heading">Memory that persists. Context that compounds.</h2>
           <a href="https://github.com/notaprompt" class="btn btn--primary btn--lg" target="_blank" rel="noopener noreferrer">Get Early Access</a>
         </div>
       </div>
@@ -403,7 +396,7 @@
         <div class="footer__brand">
           <span class="footer__glyph">◈</span>
           <span class="footer__name">Guardian</span>
-          <p class="footer__tagline">Neuroprotective cognitive infrastructure.</p>
+          <p class="footer__tagline">Local-first desktop for persistent thinking.</p>
         </div>
         <div class="footer__col">
           <h4 class="footer__col-title">Product</h4>
@@ -412,9 +405,9 @@
           <a href="#architecture" class="footer__link">Architecture</a>
         </div>
         <div class="footer__col">
-          <h4 class="footer__col-title">Research</h4>
-          <a href="#architecture" class="footer__link">TRIM Framework</a>
-          <a href="#problem" class="footer__link">Phase-Lock Architecture</a>
+          <h4 class="footer__col-title">Principles</h4>
+          <a href="#architecture" class="footer__link">Local-First</a>
+          <a href="#architecture" class="footer__link">Sovereignty</a>
         </div>
         <div class="footer__col">
           <h4 class="footer__col-title">Connect</h4>
@@ -423,7 +416,7 @@
       </div>
       <div class="footer__bottom">
         <p class="footer__copy">&copy; 2026 Guardian. Built by A. Campos.</p>
-        <p class="footer__trim">Grounded in TRIM v5 — Topological-Recursive Identity Model</p>
+        <p class="footer__trim">Electron + React + SQLite. Local-first.</p>
       </div>
     </div>
   </footer>
