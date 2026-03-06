@@ -2,8 +2,6 @@
 
 **External cognitive infrastructure for minds that don't turn off.**
 
-~31,700 lines across 24 backend modules, 30 React components, and 12 stylesheets.
-
 ---
 
 ## What it is
@@ -77,6 +75,8 @@ npm run build
 ---
 
 ## Architecture
+
+~31,700 lines across 24 backend modules, 30 React components, and 12 stylesheets.
 
 ### Data flow
 
