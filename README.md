@@ -6,98 +6,60 @@
 
 ## What it is
 
-Guardian is infrastructure for your mind. Not a note-taking app. Not a chatbot. A persistent memory layer that learns how you think, helps you navigate complexity, and remembers what matters.
+You've had the conversation before. You've solved the problem before. You know you wrote it down somewhere. You just can't find it, so you rebuild from scratch, again, at 2am, with 47 tabs open.
 
-It's for people who have 47 browser tabs open, three unfinished thoughts in different tools, and the nagging sense that they've solved this problem before but can't remember where.
+Guardian is a desktop app that makes sure that stops happening. Everything you think through -- every conversation, every insight, every half-finished thread -- stays. On your machine. Searchable. Retrievable. Yours.
 
----
-
-## What it does
-
-**Persistent memory.** Conversations don't disappear. They accumulate into a living knowledge base that gets smarter the more you use it.
-
-**Semantic navigation.** Find what you need by what it *means*, not what you called it three months ago.
-
-**Reflections.** Import your Claude and ChatGPT conversation history. Search by words, meaning, or open-ended inquiry. Past thinking becomes navigable infrastructure.
-
-**Context preservation.** Jump between projects without losing your train of thought. Guardian holds the threads.
-
-**Integration queue.** When information conflicts, Guardian doesn't overwrite. It asks. You decide. You stay sovereign.
+Not a note-taking app. Not a chatbot with a memory gimmick. A place where your thinking accumulates instead of evaporating.
 
 ---
 
-## How it works
+## How it feels
 
-Guardian sits between you and AI. Every conversation flows through it. Every insight gets remembered. Every pattern gets recognized.
+You open Guardian and pick up where you left off. Not because it summarized your last session into a bullet list, but because the context is still there -- the threads, the patterns, the things you were circling.
 
-After each AI response, a sequential pipeline enriches the memory layer:
+You ask a question and it pulls in what you've already figured out. Not because it's watching you. Because you told it, and it remembered, and now it gives it back when you need it.
 
-```mermaid
-graph LR
-    A[Chat Response] --> B[Awareness]
-    B --> C[Summarize]
-    C --> D[Embeddings]
-    D --> E[Knowledge Graph]
-    E --> F[Librarian]
-```
+You import a year of Claude conversations and suddenly that insight from October is findable by what it meant, not what you titled it.
 
-Each stage reads from and writes to the same SQLite database. Local-first. Privacy-preserving. Yours.
+You notice a pattern you keep returning to. Guardian noticed it too. Not to tell you what to do about it -- just to surface it. You decide what matters. Always.
 
 ---
 
-## Systems
+## What's here
 
-**ForgeFrame** -- Intent-based model routing. Analyzes query complexity and dispatches across frontier, open-source, and local LLM providers. Simple questions get fast models. Complex reasoning gets frontier models.
+This is a real application. ~31,700 lines across 24 backend modules and 30 React components. Everything below is built, wired, and working.
 
-**Hierarchical memory** -- Multi-stage compression with strength decay and retrieval reinforcement. Long-running dialogue distills into persistent knowledge that retrieves in milliseconds.
+**Your conversations persist.** Every message lives in local SQLite. Sessions resume. Context from past conversations shows up in new ones when it's relevant.
 
-**Knowledge graph** -- Post-conversation pipeline extracts entities and relationships with semantic indexing. Unstructured dialogue becomes a searchable graph.
+**Your thinking compounds.** After every conversation, a pipeline runs: summarize, extract patterns, build connections, compress into durable knowledge. Three levels of compression -- session summaries become patterns, patterns become principles. Not concatenation. Actual synthesis.
 
-**Reflections** -- Import and search Claude and ChatGPT conversation archives. Full-text search, semantic similarity, and open-ended inquiry across your entire history.
+**Your history is searchable.** Import Claude and ChatGPT archives. Full-text search and semantic retrieval across everything you've ever thought through with AI. Find things by what they mean.
 
-**Awareness detection** -- Identifies recurring unresolved topics across sessions. Flags patterns you keep circling back to but haven't resolved.
+**Your models work for you.** Five LLM providers (Claude, OpenAI, Ollama, Fireworks, Moonshot). ForgeFrame routes by intent -- quick questions get fast models, deep reasoning gets frontier models. Or you pick. Your call.
 
-**Quality assurance** -- Classifies AI responses to detect unintended reframing of user intent. Triggers corrections when accuracy degrades past threshold.
+**Your notes have versions.** Scratch pad for the 3am thought. Structured notes for the design doc. Journal entries. Full version history. Mark anything sovereign to keep it out of AI context entirely.
 
----
+**Your terminal is real.** Actual PTY. Docks or floats. History is searchable. No emulation.
 
-## What it's not
+**Your connections are visible.** Knowledge graph extracts entities and relationships from conversations. Grows over time. See the shape of what you've been thinking about.
 
-Guardian is not a productivity hack, a replacement for thinking, a chatbot with memory, or another place to organize notes.
-
-It's infrastructure. The kind you don't notice until it's gone.
+**Your sovereignty is structural.** Nothing phones home. No telemetry. Local SQLite. The integration queue doesn't auto-resolve conflicts -- it surfaces them and you decide. Sensitive notes stay out of AI context. Your data never leaves your machine unless you send it.
 
 ---
 
-## Current state
+## What's not here yet
 
-In active development. Early. Rough. Real.
+- Guardian as a client of the ForgeFrame memory server (bridge written, not activated)
+- Sovereign proxy integration (scrub PII before it reaches cloud LLMs)
+- Local embedding model (currently uses Claude for semantic work)
+- Automated conflict detection in the integration queue
 
 ---
 
 ## For developers
 
-**Stack:**
-
-| Layer | Technology |
-|-------|-----------|
-| Runtime | Electron 33 + Node.js |
-| Frontend | React 18 + Vite |
-| State | Zustand |
-| Database | SQLite + FTS5 (better-sqlite3) |
-| Terminal | xterm.js + node-pty (real PTY) |
-| LLM providers | Claude, OpenAI, Ollama, Fireworks, Moonshot |
-| Model routing | ForgeFrame -- tier-based intent dispatch |
-
-**Repository structure:**
-
-```
-guardian-ui-scaffold/
-├── guardian-ui/        # Electron app (see guardian-ui/README.md for architecture details)
-└── guardian-landing/   # Static landing page
-```
-
-**Getting started:**
+Electron 33. React 18. Vite. Zustand. SQLite + FTS5. xterm.js + node-pty.
 
 ```bash
 cd guardian-ui
@@ -106,7 +68,7 @@ npx @electron/rebuild -f -w node-pty
 npm start
 ```
 
-Local-first. Cloud optional. Your data, your machine, your decisions.
+See `guardian-ui/README.md` for full architecture, data flow diagrams, and project structure.
 
 ---
 
