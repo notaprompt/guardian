@@ -1,36 +1,36 @@
 # Guardian
 
-**External cognitive infrastructure for minds that don't turn off.**
+**Local control plane for model inference. Your data, your machine, provable.**
 
-Desktop app. Local SQLite. Your thinking persists instead of evaporating.
+Desktop application that intercepts, scrubs, routes, logs, and remembers every interaction between you and cloud models. Everything stays on your machine.
 
 ---
 
 ## What it does
 
-**Persistent chat.** Messages stored locally. Sessions resume. Past context surfaces in new conversations when relevant.
+Guardian sits at the inference boundary -- the point where your data meets a model. Every request passes through a local pipeline: intercept the prompt, scrub sensitive content, inject relevant context from memory, forward to the provider, rehydrate the response, and log everything. The pipeline is modality-agnostic. Chat was the first interface, not the product.
 
-**Post-chat pipeline.** After every response: summarize, extract patterns, build connections, compress. Session summaries become patterns, patterns become principles.
+### Interfaces into the control plane
 
-**Search your history.** Import Claude and ChatGPT archives. Full-text and semantic search across everything. Find things by what they mean.
+**Chat.** Multi-provider routing with automatic context injection from local memory. Past conversations surface when relevant.
 
-**Multi-provider routing.** Claude, OpenAI, Ollama, Fireworks, Moonshot. Intent-based dispatch -- simple questions get fast models, deep reasoning gets frontier models.
+**Notes.** Scratch, structured, journal. Version history with revert. Mark anything private to exclude it from model context.
 
-**Notes with versions.** Scratch, structured, journal. Version history with revert. Mark anything sovereign to keep it out of AI context.
+**Terminal.** Real PTY via node-pty. Docks or floats. History captured and searchable.
 
-**Knowledge graph.** Entities and relationships extracted from conversations automatically. Grows over time.
+**Awareness.** Surfaces topics you keep returning to across sessions. Flags patterns for review.
 
-**Awareness detection.** Surfaces topics you keep returning to across sessions. Flags patterns -- you decide what to do with them.
+**Search.** Import Claude and ChatGPT archives. Full-text and semantic search across everything.
 
-**Real terminal.** PTY via node-pty. Docks or floats. History searchable.
+**Knowledge graph.** Entities and relationships extracted from conversations. Grows over time.
 
-**Local-first.** No telemetry. No phone home. Your data stays on your machine.
+**Session instruments.** Token usage, session depth, integration queue status. Visible without demanding attention.
 
 ---
 
 ## Not built yet
 
-- Sovereign proxy integration (PII scrubbing before cloud LLMs)
+- Local proxy pipeline (PII scrubbing before cloud LLMs)
 - Local embedding model (currently uses Claude for semantic work)
 - Automated conflict detection in integration queue
 

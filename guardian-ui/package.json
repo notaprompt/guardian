@@ -1,7 +1,7 @@
 {
   "name": "guardian-ui",
   "version": "0.1.0",
-  "description": "Neuroprotective cognitive infrastructure — integrated workspace with chat, terminal, notes, and hierarchical memory",
+  "description": "Local-first desktop workspace — chat, terminal, notes, and persistent memory",
   "main": "main.js",
   "scripts": {
     "dev": "vite",
@@ -31,7 +31,8 @@
     "react-markdown": "^10.1.0",
     "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
-    "zustand": "^4.5.5"
+    "zustand": "^4.5.5",
+    "@forgeframe/core": "file:../../forgeframe/packages/core"
   },
   "devDependencies": {
     "@electron/rebuild": "^3.7.1",

@@ -1,7 +1,7 @@
 {
   "name": "guardian-landing",
   "version": "1.0.0",
-  "description": "Guardian — Neuroprotective Cognitive Infrastructure landing page",
+  "description": "Guardian — Local control plane for model inference",
   "private": true,
   "scripts": {
     "dev": "npx serve .",
@@ -9,9 +9,10 @@
   },
   "keywords": [
     "guardian",
-    "trim",
-    "cognitive-infrastructure",
-    "neuroprotective"
+    "local-first",
+    "inference",
+    "privacy",
+    "control-plane"
   ],
   "author": "A. Campos",
   "license": "MIT"

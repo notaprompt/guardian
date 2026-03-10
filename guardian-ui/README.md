@@ -1,6 +1,6 @@
 # Guardian
 
-**External cognitive infrastructure for minds that don't turn off.**
+**Local-first desktop workspace for persistent chat, notes, and memory.**
 
 ---
 
@@ -76,7 +76,7 @@ npm run build
 
 ## Architecture
 
-~31,700 lines across 24 backend modules, 30 React components, and 12 stylesheets.
+Electron + React + Node.js
 
 ### Data flow
 
@@ -174,7 +174,7 @@ guardian-ui/
 │   ├── awareness.js           # Drift detection, batched queries (356)
 │   ├── reflections.js         # Conversation history import + FTS search (351)
 │   ├── embeddings.js          # Semantic embeddings pipeline (342)
-│   ├── identity-dimensions.js # Identity dimension tracking (327)
+│   ├── identity-dimensions.js # Dimension tracking (327)
 │   ├── terminal-history.js    # Terminal session history (316)
 │   ├── compression.js         # Hierarchical memory compression (308)
 │   ├── forgeframe.js          # Intent-based model router (297)
@@ -206,12 +206,12 @@ guardian-ui/
 │   │   ├── ImportWizard.jsx           # Conversation import wizard (347)
 │   │   ├── Onboarding.jsx            # First-run onboarding (315)
 │   │   ├── ReflectionsExplorer.jsx    # Multi-mode reflection search (254)
-│   │   ├── DimensionLandscape.jsx     # Identity dimension visualization (202)
+│   │   ├── DimensionLandscape.jsx     # Dimension visualization (202)
 │   │   ├── ModelPicker.jsx            # LLM model selector (197)
 │   │   ├── TerminalWindow.jsx         # Floating terminal — drag, dock zones (165)
 │   │   ├── MemoryExplorer.jsx         # Memory browser (163)
 │   │   ├── ActivityBar.jsx            # Sidebar icon navigation (131)
-│   │   ├── DimensionDetail.jsx        # Single dimension detail view (106)
+│   │   ├── DimensionDetail.jsx        # Detail view (106)
 │   │   ├── TokenUsage.jsx             # Token consumption display (103)
 │   │   ├── DriftTab.jsx               # Drift pattern tab (93)
 │   │   ├── DriftPatternView.jsx       # Drift visualization (91)

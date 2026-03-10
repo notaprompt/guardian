@@ -3,11 +3,11 @@
 ## [0.2.0] - 2026-02-26
 
 ### Added
-- **Sovereign Layer** -- three-tier data sensitivity (surface/deep/sovereign) on notes, queue items, compression levels, and reframe events
-- **Context gating** -- deep and sovereign notes/queue items excluded from LLM prompt injection; surface-only data reaches the model
-- **Sovereign IPC** -- `setSensitivity` and `getSensitivity` handlers with table whitelist and enum validation
-- **Export gating** -- sovereign notes blocked from single-note export; filtered from all-notes and full-data exports
-- **Notes sensitivity toggle** -- cycle button in editor toolbar (surface > deep > sovereign); amber left border on list items for non-surface notes
+- **Sensitivity Layer** -- three-tier data sensitivity (surface/deep/private) on notes, queue items, compression levels, and reframe events
+- **Context gating** -- deep and private notes/queue items excluded from LLM prompt injection; surface-only data reaches the model
+- **Sensitivity IPC** -- `setSensitivity` and `getSensitivity` handlers with table whitelist and enum validation
+- **Export gating** -- private notes blocked from single-note export; filtered from all-notes and full-data exports
+- **Notes sensitivity toggle** -- cycle button in editor toolbar (surface > deep > private); amber left border on list items for non-surface notes
 - **Queue sensitivity toggle** -- cycle button per queue item with D/S indicator; amber left border treatment
 - **Ollama client** (`lib/ollama.js`) -- minimal fetch wrapper for local Ollama: `isAvailable()`, `embed()`, `generate()` using native Node 20 fetch
 - **Semantic search (Meaning mode)** -- embed query via nomic-embed-text, cosine similarity against stored Float32Array embeddings, ranked results with similarity percentage
@@ -20,7 +20,7 @@
 ### Changed
 - Reflections IPC handlers (`semantic`, `embed`, `analyze`) now async to support Ollama calls
 - `searchReflections` store action routes all three modes (words/meaning/inquiry) instead of stubbing meaning and inquiry
-- `exportFullDataAsJSON` accepts optional `excludeSovereign` flag
+- `exportFullDataAsJSON` accepts optional `excludePrivate` flag
 - Removed "available on local hardware" stub notices from Reflections mode buttons
 
 ## [0.1.1] - 2026-02-14

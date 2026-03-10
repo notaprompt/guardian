@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guardian — Local-First Desktop for Persistent Thinking</title>
-  <meta name="description" content="Desktop app that stores, compresses, and retrieves everything you think through. Local SQLite. No telemetry. Your data stays on your machine.">
+  <title>Guardian — Local Control Plane for Model Inference</title>
+  <meta name="description" content="Local control plane for model inference. Intercept, scrub, route, log, and remember every interaction between you and cloud models. Your data, your machine, provable.">
   <meta name="theme-color" content="#050505">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Guardian — Local-First Desktop for Persistent Thinking">
-  <meta property="og:description" content="Desktop app that stores, compresses, and retrieves everything you think through. Local-first. Sovereign by default.">
+  <meta property="og:title" content="Guardian — Local Control Plane for Model Inference">
+  <meta property="og:description" content="Local control plane for model inference. Intercept, scrub, route, log, remember. Your data, your machine, provable.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/og-image.png">
 
@@ -70,8 +70,8 @@
           <div class="hero__glyph-ring hero__glyph-ring--outer"></div>
         </div>
         <h1 class="hero__title reveal">Guardian</h1>
-        <p class="hero__tagline reveal reveal--delay-1">Your thinking persists<br>instead of evaporating.</p>
-        <p class="hero__sub reveal reveal--delay-2">Desktop app. Local SQLite. Memory, chat, terminal, notes. One window.</p>
+        <p class="hero__tagline reveal reveal--delay-1">Local control plane<br>for model inference.</p>
+        <p class="hero__sub reveal reveal--delay-2">Intercept. Scrub. Route. Log. Remember. Your data, your machine, provable.</p>
         <div class="hero__actions reveal reveal--delay-3">
           <a href="https://github.com/notaprompt" class="btn btn--primary" target="_blank" rel="noopener noreferrer">Get Early Access</a>
           <a href="#problem" class="btn btn--ghost">Learn More</a>
@@ -89,38 +89,38 @@
       <div class="container">
         <div class="section-label reveal">The Problem</div>
         <h2 class="problem__heading reveal">
-          Chat sessions evaporate.<br>
-          <span class="text-glow">Your thinking shouldn't.</span>
+          Every model call is an inference boundary.<br>
+          <span class="text-glow">Nothing controls what crosses it.</span>
         </h2>
         <div class="problem__grid">
           <div class="problem__card reveal">
             <div class="problem__icon">&#9632;</div>
             <p class="problem__text">
-              You solved this problem last month. You know you did.
-              But the conversation is gone, the context is gone,
-              so you rebuild from scratch.
+              Your prompts carry context you didn't intend to share.
+              File paths, names, project details -- sent to cloud models
+              with no inspection layer between you and the API.
             </p>
           </div>
           <div class="problem__card reveal">
             <div class="problem__icon">&#9632;</div>
             <p class="problem__text">
-              Note apps add organizational overhead. Chat wrappers forget
-              everything. Second-brain tools require you to be the librarian
-              of your own thoughts.
+              Chat sessions vanish. Context resets. Every tool you use
+              talks to a model, but nothing remembers what was sent,
+              what was returned, or what was learned.
             </p>
           </div>
           <div class="problem__card reveal">
             <div class="problem__icon">&#9632;</div>
             <p class="problem__text">
-              Every insight you re-derive is time spent on something
-              you already figured out. The solution is persistent memory
-              that retrieves what you need, when you need it.
+              The inference boundary is the most important surface
+              on your machine. Guardian puts a control plane there:
+              intercept, scrub, route, log, remember.
             </p>
           </div>
         </div>
         <p class="problem__closing reveal">
-          Guardian stores, compresses, and retrieves everything you think through.<br class="hide-mobile">
-          On your machine. Searchable. Yours.
+          Guardian sits at every inference boundary on your machine.<br class="hide-mobile">
+          Local pipeline. Full provenance. Nothing leaves without your knowledge.
         </p>
       </div>
     </section>
@@ -130,19 +130,19 @@
     <!-- ═══════════════════════════════════════════════════════ -->
     <section id="features" class="features">
       <div class="container">
-        <div class="section-label reveal">Capabilities</div>
+        <div class="section-label reveal">Interfaces</div>
         <h2 class="features__heading reveal">
-          What it does.
+          Interfaces into the control plane.
         </h2>
         <div class="features__grid">
 
           <article class="feature-card reveal">
             <div class="feature-card__number">01</div>
-            <h3 class="feature-card__title">Persistent Memory</h3>
+            <h3 class="feature-card__title">Memory</h3>
             <p class="feature-card__desc">
-              Every conversation stored locally. Three-level compression:
+              Every interaction logged locally. Three-level compression:
               session summaries, extracted patterns, distilled principles.
-              Raw detail when you need it. Compressed knowledge when you don't.
+              Full audit trail of what crossed the inference boundary.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Full-text search</span>
@@ -155,8 +155,8 @@
             <div class="feature-card__number">02</div>
             <h3 class="feature-card__title">Session Instruments</h3>
             <p class="feature-card__desc">
-              Token usage. Session depth. Integration queue status.
-              The information you need about your current session,
+              Token usage, session depth, integration queue status.
+              Operational telemetry for the control plane,
               visible without demanding attention.
             </p>
             <div class="feature-card__tags">
@@ -168,11 +168,11 @@
 
           <article class="feature-card reveal">
             <div class="feature-card__number">03</div>
-            <h3 class="feature-card__title">Chat with Context</h3>
+            <h3 class="feature-card__title">Chat</h3>
             <p class="feature-card__desc">
-              Multi-provider chat with automatic context injection from
-              your memory. Past conversations surface when relevant.
-              You never have to say "remember when we talked about..."
+              Multi-provider routing with automatic context injection
+              from local memory. The first interface built on the
+              control plane. Past interactions surface when relevant.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Context injection</span>
@@ -183,11 +183,11 @@
 
           <article class="feature-card reveal">
             <div class="feature-card__number">04</div>
-            <h3 class="feature-card__title">Integrated Terminal</h3>
+            <h3 class="feature-card__title">Terminal</h3>
             <p class="feature-card__desc">
-              Real PTY, not emulation. Docks inline or floats as a
-              separate window. Command history captured and searchable.
-              No context-switching between terminal and chat.
+              Real PTY, not emulation. Docks inline or floats.
+              Command history captured and searchable.
+              Another interface into the same control plane.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Real PTY</span>
@@ -200,9 +200,9 @@
             <div class="feature-card__number">05</div>
             <h3 class="feature-card__title">Notes</h3>
             <p class="feature-card__desc">
-              Three modes: scratch for quick capture, structured for
-              documents, journal for longer-form writing. Full version
-              history. Mark anything sovereign to exclude it from chat context.
+              Three modes: scratch, structured, journal. Full version
+              history. Mark anything private to exclude it from
+              model context.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Scratch capture</span>
@@ -215,9 +215,9 @@
             <div class="feature-card__number">06</div>
             <h3 class="feature-card__title">Knowledge Graph</h3>
             <p class="feature-card__desc">
-              Entities and relationships extracted from conversations
-              automatically. Stored in SQLite, visualized with force-directed
-              layout. See the structure of what you've been working on.
+              Entities and relationships extracted from interactions
+              automatically. Stored in SQLite, visualized with
+              force-directed layout. Structure emerges from usage.
             </p>
             <div class="feature-card__tags">
               <span class="tag">Entity extraction</span>
@@ -313,61 +313,63 @@
         <div class="section-label reveal">How It Works</div>
         <h2 class="architecture__heading reveal">
           Local-first.<br>
-          <span class="text-glow">Sovereign by default.</span>
+          <span class="text-glow">Provable by default.</span>
         </h2>
         <div class="architecture__content">
           <div class="architecture__text reveal">
             <p>
               Guardian runs entirely on your machine. SQLite for storage.
-              Full-text search for retrieval. No cloud dependency for core
-              functionality. Cloud providers are optional -- for chat, not for memory.
+              Full-text search for retrieval. The control plane has no cloud
+              dependency. Cloud providers handle inference -- Guardian handles
+              everything else.
             </p>
             <p>
-              Your memory shapes what gets stored. What gets stored shapes what
-              Guardian retrieves. What Guardian retrieves shapes your next conversation.
-              The system gets more useful the more you use it.
+              The pipeline is modality-agnostic: intercept the request, scrub
+              sensitive content, inject relevant context, forward to the provider,
+              rehydrate the response, log everything. Chat was the first modality.
+              It won't be the last.
             </p>
             <p>
-              Every feature answers one question: <strong>does this help you find
-              and build on what you've already figured out?</strong> If not, it
-              doesn't ship.
+              Every feature answers one question: <strong>does this give you
+              visibility and control at the inference boundary?</strong> If not,
+              it doesn't ship.
             </p>
           </div>
           <div class="architecture__layers reveal">
             <div class="architecture__layer">
-              <div class="architecture__layer-label">Interface</div>
-              <div class="architecture__layer-desc">Panels, terminal, chat, notes</div>
+              <div class="architecture__layer-label">Interfaces</div>
+              <div class="architecture__layer-desc">Chat, terminal, notes, instruments</div>
             </div>
             <div class="architecture__layer">
-              <div class="architecture__layer-label">Chat</div>
-              <div class="architecture__layer-desc">Multi-provider with context injection</div>
+              <div class="architecture__layer-label">Pipeline</div>
+              <div class="architecture__layer-desc">Intercept, scrub, route, rehydrate, log</div>
             </div>
             <div class="architecture__layer">
               <div class="architecture__layer-label">Memory</div>
-              <div class="architecture__layer-desc">SQLite + FTS5, compression, retrieval</div>
+              <div class="architecture__layer-desc">SQLite + FTS5, compression, context retrieval</div>
             </div>
             <div class="architecture__layer">
               <div class="architecture__layer-label">Storage</div>
-              <div class="architecture__layer-desc">Local database, your machine</div>
+              <div class="architecture__layer-desc">Local database, full provenance</div>
             </div>
           </div>
         </div>
         <div class="architecture__principles">
           <div class="architecture__principle reveal">
-            <h3>Everything in One Place</h3>
-            <p>No context-switching. No mode changes. Terminal, chat, notes, and artifacts in a single resizable layout.</p>
+            <h3>Single Pane of Glass</h3>
+            <p>Every interface into the control plane in one resizable layout. No context-switching.</p>
           </div>
           <div class="architecture__principle reveal">
-            <h3>Less to Hold in Your Head</h3>
-            <p>Context injection means past work shows up when relevant. You think forward. Guardian handles the retrieval.</p>
+            <h3>Automatic Context</h3>
+            <p>Relevant past interactions injected into requests automatically. The control plane handles retrieval.</p>
           </div>
           <div class="architecture__principle reveal">
-            <h3>Nothing Gets Lost</h3>
-            <p>Every conversation, every note, every artifact is stored and versioned. Deleting is your choice, never the system's.</p>
+            <h3>Full Provenance</h3>
+            <p>Every request, response, and artifact logged and versioned. Complete audit trail of what crossed the boundary.</p>
           </div>
           <div class="architecture__principle reveal">
             <h3>Your Data Stays Here</h3>
-            <p>No telemetry. No phone home. Local SQLite. Cloud providers are for chat -- your memory never leaves your machine.</p>
+            <p>No telemetry. No phone home. Local SQLite. Cloud providers handle inference -- your data never leaves your machine.</p>
           </div>
         </div>
       </div>
@@ -380,7 +382,7 @@
       <div class="container">
         <div class="cta__content reveal">
           <span class="cta__glyph" aria-hidden="true">◈</span>
-          <h2 class="cta__heading">Memory that persists. Context that compounds.</h2>
+          <h2 class="cta__heading">Your inference boundary. Your rules.</h2>
           <a href="https://github.com/notaprompt" class="btn btn--primary btn--lg" target="_blank" rel="noopener noreferrer">Get Early Access</a>
         </div>
       </div>
@@ -396,7 +398,7 @@
         <div class="footer__brand">
           <span class="footer__glyph">◈</span>
           <span class="footer__name">Guardian</span>
-          <p class="footer__tagline">Local-first desktop for persistent thinking.</p>
+          <p class="footer__tagline">Local control plane for model inference.</p>
         </div>
         <div class="footer__col">
           <h4 class="footer__col-title">Product</h4>
@@ -407,7 +409,7 @@
         <div class="footer__col">
           <h4 class="footer__col-title">Principles</h4>
           <a href="#architecture" class="footer__link">Local-First</a>
-          <a href="#architecture" class="footer__link">Sovereignty</a>
+          <a href="#architecture" class="footer__link">Provenance</a>
         </div>
         <div class="footer__col">
           <h4 class="footer__col-title">Connect</h4>
