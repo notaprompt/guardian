@@ -171,7 +171,7 @@ export default function Onboarding() {
         <div className="onboarding__glyph" aria-hidden="true">&#9672;</div>
         <div className="onboarding__title">Guardian</div>
         <div className="onboarding__subtitle">
-          external cognitive infrastructure for minds that don't turn off.
+          local-first workspace with persistent memory.
         </div>
         <button className="onboarding__begin" onClick={() => setPhase('assessment')}>
           Begin setup

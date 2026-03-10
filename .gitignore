@@ -30,6 +30,6 @@ keys.enc
 # Debug artifacts
 asar*
 
-# Proprietary cognitive layer
+# Excluded modules
 guardian-ui/lib/identity-dimensions.js
 guardian-ui/lib/awareness.js

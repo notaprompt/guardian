@@ -1,6 +1,6 @@
 # Guardian User Guide
 
-Guardian is an Electron desktop application that wraps Claude Code CLI into a multi-panel mission control interface. It combines a real terminal, AI chat, a notes system, memory search, an integration queue, and cognitive telemetry into a single workspace. All data is stored locally on your machine.
+Guardian is an Electron desktop application that wraps Claude Code CLI into a multi-panel mission control interface. It combines a real terminal, AI chat, a notes system, memory search, an integration queue, and session telemetry into a single workspace. All data is stored locally on your machine.
 
 ---
 
@@ -79,7 +79,7 @@ The top bar shows:
 - **Model Picker** (ForgeFrame) — current AI model and auto-route toggle
 - **Session status** — "session active" or "idle"
 - **Open threads count** — number of unresolved integration queue items
-- **Architecture type** — your assessed cognitive architecture (PL/CD/TD)
+- **Architecture type** — your interaction profile (PL/CD/TD)
 
 ### Bottom Bar (Telemetry Strip)
 
@@ -468,7 +468,7 @@ No data leaves your machine. There is no cloud sync, no telemetry, and no analyt
 
 ## Session Telemetry
 
-Guardian tracks real-time cognitive load proxies during your sessions:
+Guardian tracks real-time usage patterns during your sessions:
 
 - **Token burn rate** — tokens consumed per minute over a rolling 2-minute window. Normalized to 0-1 where 1000 tok/min = 1.0.
 - **Session duration** — minutes elapsed, normalized to 0-1 where 120 minutes = 1.0.

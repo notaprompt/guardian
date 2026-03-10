@@ -296,7 +296,7 @@ function ProfileSection({ profile, saveProfile }) {
         <div className="settings-row__info">
           <div className="settings-row__label">Architecture Type</div>
           <div className="settings-row__desc">
-            Your cognitive architecture as identified during self-assessment
+            Your interaction profile as identified during setup
           </div>
         </div>
         <div className="settings-row__control">
@@ -945,8 +945,8 @@ function AboutSection() {
       <div className="settings-about__name">Guardian</div>
       <div className="settings-about__version">v0.1.0</div>
       <div className="settings-about__desc">
-        Neuroprotective cognitive infrastructure for high-coupling architectures.
-        Grounded in cognitive identity mapping research.
+        Local-first desktop workspace with persistent memory.
+        Built for people who think in threads.
       </div>
       <div className="settings-about__credit">
         Built by A. Campos, 2026

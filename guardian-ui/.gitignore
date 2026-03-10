@@ -35,6 +35,6 @@ asar*
 # Protected IP
 arch/
 
-# Proprietary cognitive layer
+# Excluded modules
 lib/identity-dimensions.js
 lib/awareness.js

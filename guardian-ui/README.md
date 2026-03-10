@@ -22,7 +22,7 @@ It's for people who have 47 browser tabs open, three unfinished thoughts in diff
 
 **Context preservation.** Jump between projects without losing your train of thought. Guardian holds the threads.
 
-**Integration queue.** When information conflicts, Guardian doesn't overwrite. It asks. You decide. You stay sovereign.
+**Integration queue.** When information conflicts, Guardian doesn't overwrite. It asks. You decide. Your data stays local.
 
 ---
 
@@ -171,10 +171,8 @@ guardian-ui/
 │   ├── librarian.js           # Entity extraction + memory librarian (609)
 │   ├── backup.js              # Automated backup system (566)
 │   ├── import-parser.js       # ChatGPT/Claude export parsers (454)
-│   ├── awareness.js           # Drift detection, batched queries (356)
 │   ├── reflections.js         # Conversation history import + FTS search (351)
 │   ├── embeddings.js          # Semantic embeddings pipeline (342)
-│   ├── identity-dimensions.js # Dimension tracking (327)
 │   ├── terminal-history.js    # Terminal session history (316)
 │   ├── compression.js         # Hierarchical memory compression (308)
 │   ├── forgeframe.js          # Intent-based model router (297)

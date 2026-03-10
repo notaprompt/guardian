@@ -98,9 +98,9 @@ linux:
   icon: build/icon.png
   category: Utility
   artifactName: "Guardian-${version}-linux.${ext}"
-  synopsis: Neuroprotective cognitive infrastructure
+  synopsis: Local-first desktop workspace
   description: >
-    External cognitive infrastructure for minds that don't turn off.
+    Local control plane for model inference.
     Terminal, chat, notes, and memory search in a unified workspace.
 
 appImage:
