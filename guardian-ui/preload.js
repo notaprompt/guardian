@@ -366,6 +366,18 @@ contextBridge.exposeInMainWorld('guardian', {
     logRenderer: (name, data) => ipcRenderer.invoke('guardian:perf:logRenderer', { name, data }),
   },
 
+  // ── ForgeFrame MCP ─────────────────────────────────
+  forgeframeMcp: {
+    status: () => ipcRenderer.invoke('guardian:forgeframe:status'),
+    memorySave: (content, metadata) => ipcRenderer.invoke('guardian:forgeframe:memorySave', { content, metadata }),
+    memoryQuery: (query, options) => ipcRenderer.invoke('guardian:forgeframe:memoryQuery', { query, ...options }),
+    memorySearch: (query) => ipcRenderer.invoke('guardian:forgeframe:memorySearch', { query }),
+    memoryStatus: () => ipcRenderer.invoke('guardian:forgeframe:memoryStatus'),
+    sessionStart: (name) => ipcRenderer.invoke('guardian:forgeframe:sessionStart', { name }),
+    sessionEnd: () => ipcRenderer.invoke('guardian:forgeframe:sessionEnd'),
+    sessionCurrent: () => ipcRenderer.invoke('guardian:forgeframe:sessionCurrent'),
+  },
+
   // ── System ──────────────────────────────────────────
   system: {
     info: () => ipcRenderer.invoke('guardian:system:info')

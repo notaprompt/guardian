@@ -41,6 +41,7 @@ const librarian = require('./lib/librarian');
 const providers = require('./lib/providers');
 const secureStore = require('./lib/secure-store');
 const reflections = require('./lib/reflections');
+const forgeframeMcp = require('./lib/forgeframe-mcp');
 
 // Start performance tracking immediately on module load
 perf.markStartupBegin();
@@ -2646,6 +2647,44 @@ ipcMain.handle('guardian:keys:test', (event, { provider: providerType }) => {
   }
 });
 
+// ── ForgeFrame MCP ────────────────────────────────────────────────
+
+ipcMain.handle('guardian:forgeframe:status', () => {
+  return {
+    ok: true,
+    connected: forgeframeMcp.isConnected(),
+    tools: forgeframeMcp.getTools(),
+  };
+});
+
+ipcMain.handle('guardian:forgeframe:memorySave', (event, { content, metadata }) => {
+  return forgeframeMcp.memorySave(content, metadata);
+});
+
+ipcMain.handle('guardian:forgeframe:memoryQuery', (event, { query, ...options }) => {
+  return forgeframeMcp.memoryQuery(query, options);
+});
+
+ipcMain.handle('guardian:forgeframe:memorySearch', (event, { query }) => {
+  return forgeframeMcp.memorySearch(query);
+});
+
+ipcMain.handle('guardian:forgeframe:memoryStatus', () => {
+  return forgeframeMcp.memoryStatus();
+});
+
+ipcMain.handle('guardian:forgeframe:sessionStart', (event, { name } = {}) => {
+  return forgeframeMcp.sessionStart(name);
+});
+
+ipcMain.handle('guardian:forgeframe:sessionEnd', () => {
+  return forgeframeMcp.sessionEnd();
+});
+
+ipcMain.handle('guardian:forgeframe:sessionCurrent', () => {
+  return forgeframeMcp.sessionCurrent();
+});
+
 // ══════════════════════════════════════════════════════════════════
 // APP LIFECYCLE
 // ══════════════════════════════════════════════════════════════════
@@ -2687,6 +2726,14 @@ app.whenReady().then(() => {
     log.warn('Auto-backup check failed:', e.message);
   });
 
+  // ForgeFrame MCP server (async, non-blocking)
+  forgeframeMcp.init().then(() => {
+    log.info('ForgeFrame MCP connected');
+    perf.mark('forgeframe:ready');
+  }).catch((err) => {
+    log.warn('ForgeFrame MCP failed to start (non-fatal):', err.message);
+  });
+
   createWindow();
   perf.mark('window:created');
 
@@ -2722,6 +2769,7 @@ app.on('before-quit', () => {
       database.sessions.update(currentSessionId, { endedAt: new Date().toISOString() });
     } catch (_) {}
   }
+  forgeframeMcp.close();
   terminalHistory.close();
   perf.logMemory('shutdown');
   perf.close();
