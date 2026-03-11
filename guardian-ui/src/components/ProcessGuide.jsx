@@ -18,7 +18,7 @@ function ProcessGuide() {
           <div className="process-guide__section-title">What happens after you send a message</div>
           <p>Guardian runs a five-stage pipeline on every conversation exchange:</p>
           <ol style={{ margin: '4px 0 8px 16px', padding: 0, lineHeight: 1.8 }}>
-            <li><strong>Awareness detection</strong> -- scans for recurring patterns and cognitive traps</li>
+            <li><strong>Awareness detection</strong> -- scans for recurring patterns and reasoning traps</li>
             <li><strong>Auto-summarize + compression</strong> -- distills sessions into layered memory</li>
             <li><strong>Semantic embedding</strong> -- indexes conversation chunks for meaning-based search</li>
             <li><strong>Knowledge graph extraction</strong> -- identifies entities and relationships</li>
@@ -48,7 +48,7 @@ function ProcessGuide() {
           </div>
           <div className="process-guide__feature">
             <span className="process-guide__feature-name">Drift Detection</span> -- tracks reframe events
-            when the LLM shifts your perspective. Monitors cognitive trajectory.
+            when the LLM shifts your perspective. Monitors trajectory.
           </div>
           <div className="process-guide__feature">
             <span className="process-guide__feature-name">Reflections</span> -- imported conversation history.

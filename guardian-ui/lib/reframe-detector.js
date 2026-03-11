@@ -45,7 +45,7 @@ For each reframe found, return JSON:
       "reframe_text": "the specific reframing sentence from the assistant (max 200 chars)",
       "reframe_type": "contrast|relabel|identity|minimize|inflate|certainty|redirect",
       "confidence": 0.0 to 1.0,
-      "identity_dimension": "emotional|professional|cognitive|relational|ambition|worth|somatic|creative"
+      "identity_dimension": "emotional|professional|reasoning|relational|ambition|worth|somatic|creative"
     }
   ]
 }
@@ -142,7 +142,7 @@ function detectReframes(messages, db, sessionId, { onComplete, onError }) {
         if (rf.confidence < 0.5) continue;
 
         const validTypes = ['contrast', 'relabel', 'identity', 'minimize', 'inflate', 'certainty', 'redirect'];
-        const validDimensions = ['emotional', 'professional', 'cognitive', 'relational', 'ambition', 'worth', 'somatic', 'creative'];
+        const validDimensions = ['emotional', 'professional', 'reasoning', 'relational', 'ambition', 'worth', 'somatic', 'creative'];
 
         try {
           db.reframe.add({
@@ -153,7 +153,7 @@ function detectReframes(messages, db, sessionId, { onComplete, onError }) {
             reframe_text: (rf.reframe_text || '').slice(0, 400),
             reframe_type: validTypes.includes(rf.reframe_type) ? rf.reframe_type : 'relabel',
             confidence: Math.min(1, Math.max(0, rf.confidence)),
-            identity_dimension: validDimensions.includes(rf.identity_dimension) ? rf.identity_dimension : 'cognitive',
+            identity_dimension: validDimensions.includes(rf.identity_dimension) ? rf.identity_dimension : 'reasoning',
             acknowledged: 0,
             accurate: -1,
             created_at: new Date().toISOString(),

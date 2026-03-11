@@ -1297,7 +1297,7 @@ const reframe = {
     const dimRows = db().prepare(
       'SELECT identity_dimension, COUNT(*) as c FROM reframe_events WHERE identity_dimension IS NOT NULL GROUP BY identity_dimension'
     ).all();
-    const byDimension = { emotional: 0, professional: 0, cognitive: 0, relational: 0, ambition: 0, worth: 0, somatic: 0, creative: 0 };
+    const byDimension = { emotional: 0, professional: 0, reasoning: 0, relational: 0, ambition: 0, worth: 0, somatic: 0, creative: 0 };
     for (const r of dimRows) {
       byDimension[r.identity_dimension] = r.c;
     }

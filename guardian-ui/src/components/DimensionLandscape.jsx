@@ -2,14 +2,14 @@ import React, { useEffect, useMemo, useCallback } from 'react';
 import useStore from '../store';
 
 const DIMENSIONS = [
-  'emotional', 'professional', 'cognitive', 'relational',
+  'emotional', 'professional', 'reasoning', 'relational',
   'ambition', 'worth', 'somatic', 'creative',
 ];
 
 const DIMENSION_LABELS = {
   emotional: 'Emotional',
   professional: 'Professional',
-  cognitive: 'Cognitive',
+  reasoning: 'Reasoning',
   relational: 'Relational',
   ambition: 'Ambition',
   worth: 'Worth',

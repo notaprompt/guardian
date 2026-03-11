@@ -8,7 +8,7 @@
  * Manual override via ModelPicker always takes precedence.
  * Persists selected model to ~/.guardian/config/settings.json
  *
- * Routes by cognitive task tier: quick, balanced, and deep.
+ * Routes by task tier: quick, balanced, and deep.
  */
 type Tier = 'quick' | 'balanced' | 'deep';
 interface Model {

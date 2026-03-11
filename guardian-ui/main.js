@@ -349,7 +349,7 @@ ipcMain.handle('guardian:claude:launch', (event, { id, cols, rows, cwd }) => {
 });
 
 // ── Session Telemetry Engine ─────────────────────────────────────
-// Tracks real-time cognitive load proxies for navigation instruments
+// Tracks real-time processing load proxies for navigation instruments
 
 const telemetry = {
   sessionStart: null,

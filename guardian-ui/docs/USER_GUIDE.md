@@ -46,7 +46,7 @@ npm run dist         # Package with electron-builder
 When you launch Guardian for the first time, you will see the onboarding flow:
 
 1. **Welcome** — The Guardian glyph and tagline. Click "Begin setup" to proceed.
-2. **Architecture Self-Assessment** — Five questions that calibrate Guardian to your cognitive style. Your answers determine whether Guardian classifies you as Phase-Lock (PL), Context-Dependent (CD), or Time-Division (TD). This affects features like awareness-trap detection sensitivity. All results are stored locally, never transmitted.
+2. **Architecture Self-Assessment** — Five questions that calibrate Guardian to your working style. Your answers determine whether Guardian classifies you as Phase-Lock (PL), Context-Dependent (CD), or Time-Division (TD). This affects features like awareness-trap detection sensitivity. All results are stored locally, never transmitted.
 3. **Workspace Setup** — Choose your preferred shell, default AI model, and optionally import existing Markdown notes.
 4. **Transition** — Click "Enter Guardian" to open the main cockpit.
 
