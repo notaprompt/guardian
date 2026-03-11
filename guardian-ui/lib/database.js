@@ -455,7 +455,7 @@ function _createSchema() {
   try { _db.exec('ALTER TABLE sessions ADD COLUMN original_id TEXT'); } catch (_) {}
   try { _db.exec('ALTER TABLE sessions ADD COLUMN message_count INTEGER DEFAULT 0'); } catch (_) {}
 
-  // Sovereign layer: sensitivity tiers (surface | deep | sovereign)
+  // Privacy layer: sensitivity tiers (surface | deep | private)
   try { _db.exec("ALTER TABLE notes ADD COLUMN sensitivity TEXT DEFAULT 'surface'"); } catch (_) {}
   try { _db.exec("ALTER TABLE queue_items ADD COLUMN sensitivity TEXT DEFAULT 'surface'"); } catch (_) {}
   try { _db.exec("ALTER TABLE compression_levels ADD COLUMN sensitivity TEXT DEFAULT 'surface'"); } catch (_) {}

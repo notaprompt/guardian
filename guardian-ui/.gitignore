@@ -38,3 +38,4 @@ arch/
 # Excluded modules
 lib/identity-dimensions.js
 lib/awareness.js
+lib/identity-dimensions.*

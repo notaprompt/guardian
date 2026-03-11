@@ -722,7 +722,7 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
   let prompt = message;
   let contextTokenEstimate = 0;
 
-  // 1. Inject notes context (sovereign/deep notes excluded from LLM context)
+  // 1. Inject notes context (private/deep notes excluded from LLM context)
   try {
     const allNotes = database.notes.list()
       .filter((n) => !n.sensitivity || n.sensitivity === 'surface');
@@ -741,7 +741,7 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
     log.warn('Notes injection failed:', e.message);
   }
 
-  // 2. Inject integration queue (sovereign/deep items excluded from LLM context)
+  // 2. Inject integration queue (private/deep items excluded from LLM context)
   try {
     if (contextTokenEstimate < 1600) {
       const openItems = database.queue.list({ status: 'open' })
@@ -1753,7 +1753,7 @@ ipcMain.handle('guardian:export:note', async (event, { noteId, format }) => {
   try {
     const note = database.notes.get(noteId);
     if (!note) return { ok: false, error: 'Note not found' };
-    if (note.sensitivity === 'sovereign') return { ok: false, error: 'Sovereign notes cannot be exported' };
+    if (note.sensitivity === 'private') return { ok: false, error: 'Private notes cannot be exported' };
 
     let content, defaultName;
     if (format === 'json') {
@@ -1793,10 +1793,10 @@ ipcMain.handle('guardian:export:allNotes', async (event, { format }) => {
 
     const outputDir = result.filePaths[0];
     const notes = database.notes.list()
-      .filter((n) => n.sensitivity !== 'sovereign');
+      .filter((n) => n.sensitivity !== 'private');
 
     if (format === 'json') {
-      const content = exporter.exportFullDataAsJSON(database, { excludeSovereign: true });
+      const content = exporter.exportFullDataAsJSON(database, { excludePrivate: true });
       const filePath = path.join(outputDir, 'guardian-export.json');
       fs.writeFileSync(filePath, content, 'utf-8');
       log.info('Full JSON export to:', filePath);
@@ -1813,7 +1813,7 @@ ipcMain.handle('guardian:export:allNotes', async (event, { format }) => {
 
 ipcMain.handle('guardian:export:fullData', async () => {
   try {
-    const content = exporter.exportFullDataAsJSON(database, { excludeSovereign: true });
+    const content = exporter.exportFullDataAsJSON(database, { excludePrivate: true });
     const defaultName = `guardian-full-export-${new Date().toISOString().slice(0, 10)}.json`;
 
     const result = await dialog.showSaveDialog(mainWindow, {
@@ -2468,17 +2468,17 @@ ipcMain.handle('guardian:dimensions:timeline', (event, { weeks }) => {
   }
 });
 
-// ── Sovereign Layer ──────────────────────────────────────────────
+// ── Privacy Layer ──────────────────────────────────────────────
 
-const SOVEREIGN_TABLES = ['notes', 'queue_items', 'compression_levels', 'reframe_events'];
-const SOVEREIGN_LEVELS = ['surface', 'deep', 'sovereign'];
+const PRIVACY_TABLES = ['notes', 'queue_items', 'compression_levels', 'reframe_events'];
+const PRIVACY_LEVELS = ['surface', 'deep', 'private'];
 
-ipcMain.handle('guardian:sovereign:setSensitivity', (event, { table, id, sensitivity }) => {
+ipcMain.handle('guardian:privacy:setSensitivity', (event, { table, id, sensitivity }) => {
   try {
-    if (!SOVEREIGN_TABLES.includes(table)) {
+    if (!PRIVACY_TABLES.includes(table)) {
       return { ok: false, error: `Invalid table: ${table}` };
     }
-    if (!SOVEREIGN_LEVELS.includes(sensitivity)) {
+    if (!PRIVACY_LEVELS.includes(sensitivity)) {
       return { ok: false, error: `Invalid sensitivity: ${sensitivity}` };
     }
     database.db().prepare(`UPDATE ${table} SET sensitivity = ? WHERE id = ?`).run(sensitivity, id);
@@ -2489,9 +2489,9 @@ ipcMain.handle('guardian:sovereign:setSensitivity', (event, { table, id, sensiti
   }
 });
 
-ipcMain.handle('guardian:sovereign:getSensitivity', (event, { table, id }) => {
+ipcMain.handle('guardian:privacy:getSensitivity', (event, { table, id }) => {
   try {
-    if (!SOVEREIGN_TABLES.includes(table)) {
+    if (!PRIVACY_TABLES.includes(table)) {
       return { ok: false, error: `Invalid table: ${table}` };
     }
     const row = database.db().prepare(`SELECT sensitivity FROM ${table} WHERE id = ?`).get(id);

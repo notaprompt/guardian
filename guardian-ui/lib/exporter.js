@@ -230,8 +230,8 @@ function exportFullDataAsJSON(database, opts = {}) {
     allMessages[s.id] = database.messages.listBySession(s.id);
   }
   let notes = database.notes.list();
-  if (opts.excludeSovereign) {
-    notes = notes.filter((n) => n.sensitivity !== 'sovereign');
+  if (opts.excludePrivate) {
+    notes = notes.filter((n) => n.sensitivity !== 'private');
   }
   const usage = database.usage.list({ limit: 10000 });
 

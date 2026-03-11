@@ -59,7 +59,7 @@ function ProcessGuide() {
             conversations, notes, and artifacts.
           </div>
           <div className="process-guide__feature">
-            <span className="process-guide__feature-name">Sovereign Layer</span> -- surface, deep, and sovereign
+            <span className="process-guide__feature-name">Privacy Layer</span> -- surface, deep, and private
             sensitivity tiers. Context gating controls what the LLM can access. Export protection for sensitive data.
           </div>
         </div>

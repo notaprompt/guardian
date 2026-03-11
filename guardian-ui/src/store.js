@@ -1203,10 +1203,10 @@ const useStore = create((set, get) => ({
     return cleanup;
   },
 
-  // ── Sovereign Layer ─────────────────────────────────────
+  // ── Privacy Layer ─────────────────────────────────────
   setSensitivity: async (table, id, sensitivity) => {
     try {
-      const result = await window.guardian.sovereign.setSensitivity(table, id, sensitivity);
+      const result = await window.guardian.privacy.setSensitivity(table, id, sensitivity);
       if (result.ok) {
         if (table === 'notes') get().fetchNotes();
         if (table === 'queue_items') get().fetchQueue();

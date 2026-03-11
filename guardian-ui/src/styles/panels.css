@@ -3360,9 +3360,9 @@
 .reflections-embed-progress { height: 3px; background: var(--depth-3); border-radius: 2px; margin-top: 4px; overflow: hidden; }
 .reflections-embed-progress__bar { height: 100%; background: var(--glow); transition: width 0.3s ease; }
 
-/* ── Sovereign Layer ───────────────────────────────────── */
+/* ── Privacy Layer ───────────────────────────────────── */
 
-.sovereign-btn {
+.privacy-btn {
   font-size: 10px;
   font-family: var(--mono);
   padding: 2px 6px;
@@ -3374,24 +3374,24 @@
   line-height: 1;
   transition: all 0.15s ease;
 }
-.sovereign-btn:hover {
+.privacy-btn:hover {
   color: var(--white-60);
   border-color: var(--white-20);
 }
-.sovereign-btn--deep {
+.privacy-btn--deep {
   color: #d4a017;
   border-color: #d4a01766;
 }
-.sovereign-btn--deep:hover {
+.privacy-btn--deep:hover {
   color: #e6b422;
   border-color: #d4a017;
 }
-.sovereign-btn--sovereign {
+.privacy-btn--private {
   color: #1a1a1a;
   background: #d4a017;
   border-color: #d4a017;
 }
-.sovereign-btn--sovereign:hover {
+.privacy-btn--private:hover {
   background: #e6b422;
   border-color: #e6b422;
 }
@@ -3400,7 +3400,7 @@
 .notes-list-item--deep {
   border-left: 2px solid #d4a01766;
 }
-.notes-list-item--sovereign {
+.notes-list-item--private {
   border-left: 2px solid #d4a017;
 }
 
@@ -3408,7 +3408,7 @@
 .queue-item--deep {
   border-left: 2px solid #d4a01766;
 }
-.queue-item--sovereign {
+.queue-item--private {
   border-left: 2px solid #d4a017;
 }
 

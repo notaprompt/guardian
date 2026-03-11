@@ -166,9 +166,9 @@ function NotesPanelInner() {
     return '';
   }, []);
 
-  // Sensitivity cycle: surface -> deep -> sovereign -> surface
+  // Sensitivity cycle: surface -> deep -> private -> surface
   const cycleSensitivity = useCallback((noteId, current) => {
-    const next = current === 'surface' ? 'deep' : current === 'deep' ? 'sovereign' : 'surface';
+    const next = current === 'surface' ? 'deep' : current === 'deep' ? 'private' : 'surface';
     setSensitivity('notes', noteId, next);
   }, [setSensitivity]);
 
@@ -278,11 +278,11 @@ function NotesPanelInner() {
                   )}
                   <div className="notes-editor__actions">
                     <button
-                      className={`sovereign-btn${activeNote.sensitivity === 'deep' ? ' sovereign-btn--deep' : ''}${activeNote.sensitivity === 'sovereign' ? ' sovereign-btn--sovereign' : ''}`}
+                      className={`privacy-btn${activeNote.sensitivity === 'deep' ? ' privacy-btn--deep' : ''}${activeNote.sensitivity === 'private' ? ' privacy-btn--private' : ''}`}
                       onClick={() => cycleSensitivity(activeNote.id, activeNote.sensitivity || 'surface')}
                       title={`Sensitivity: ${activeNote.sensitivity || 'surface'} (click to cycle)`}
                     >
-                      {activeNote.sensitivity === 'deep' ? 'deep' : activeNote.sensitivity === 'sovereign' ? 'sovereign' : 'surface'}
+                      {activeNote.sensitivity === 'deep' ? 'deep' : activeNote.sensitivity === 'private' ? 'private' : 'surface'}
                     </button>
                     {activeNote.source_session_id && (
                       <button

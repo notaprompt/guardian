@@ -37,7 +37,7 @@ function QueuePanel() {
   }, [handleAddThread]);
 
   const cycleSensitivity = useCallback((itemId, current) => {
-    const next = current === 'surface' ? 'deep' : current === 'deep' ? 'sovereign' : 'surface';
+    const next = current === 'surface' ? 'deep' : current === 'deep' ? 'private' : 'surface';
     setSensitivity('queue_items', itemId, next);
   }, [setSensitivity]);
 
@@ -82,7 +82,7 @@ function QueuePanel() {
               <div className="queue-item__actions">
                 {item.sensitivity && item.sensitivity !== 'surface' && (
                   <button
-                    className={`sovereign-btn sovereign-btn--${item.sensitivity}`}
+                    className={`privacy-btn privacy-btn--${item.sensitivity}`}
                     onClick={() => cycleSensitivity(item.id, item.sensitivity)}
                     title={`Sensitivity: ${item.sensitivity} (click to cycle)`}
                   >
@@ -91,7 +91,7 @@ function QueuePanel() {
                 )}
                 {(!item.sensitivity || item.sensitivity === 'surface') && (
                   <button
-                    className="sovereign-btn"
+                    className="privacy-btn"
                     onClick={() => cycleSensitivity(item.id, 'surface')}
                     title="Sensitivity: surface (click to cycle)"
                   >
