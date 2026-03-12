@@ -42,6 +42,7 @@ const providers = require('./lib/providers');
 const secureStore = require('./lib/secure-store');
 const reflections = require('./lib/reflections');
 const forgeframeMcp = require('./lib/forgeframe-mcp');
+const forgeframeSync = require('./lib/forgeframe-sync');
 
 // Start performance tracking immediately on module load
 perf.markStartupBegin();
@@ -696,6 +697,7 @@ ipcMain.handle('guardian:chat:send', (event, { message, attachments, sessionId }
     database.sessions.create(currentSessionId, { title: message.slice(0, 80) });
     send('guardian:chat:sessionCreated', { sessionId: currentSessionId });
     metrics.startSession(currentSessionId);
+    forgeframeSync.syncSessionStart(currentSessionId, message.slice(0, 80));
   }
 
   // Persist user message
@@ -1073,6 +1075,7 @@ ipcMain.handle('guardian:chat:newSession', () => {
   if (currentSessionId) {
     database.sessions.update(currentSessionId, { endedAt: new Date().toISOString() });
     metrics.endSession(currentSessionId);
+    forgeframeSync.syncSessionEnd();
   }
   currentSessionId = null;
   claudeSessionId = null;
@@ -2685,6 +2688,16 @@ ipcMain.handle('guardian:forgeframe:sessionCurrent', () => {
   return forgeframeMcp.sessionCurrent();
 });
 
+ipcMain.handle('guardian:forgeframe:migrate', async () => {
+  try {
+    const { migrate } = require('./lib/forgeframe-migrate');
+    const counts = await migrate(database);
+    return { ok: true, ...counts };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
 // ══════════════════════════════════════════════════════════════════
 // APP LIFECYCLE
 // ══════════════════════════════════════════════════════════════════
@@ -2727,9 +2740,15 @@ app.whenReady().then(() => {
   });
 
   // ForgeFrame MCP server (async, non-blocking)
+  const { migrate: forgeframeMigrate } = require('./lib/forgeframe-migrate');
   forgeframeMcp.init().then(() => {
     log.info('ForgeFrame MCP connected');
     perf.mark('forgeframe:ready');
+    return forgeframeMigrate(database);
+  }).then((counts) => {
+    if (counts && (counts.notes + counts.queue + counts.compression > 0)) {
+      log.info('ForgeFrame migration:', counts);
+    }
   }).catch((err) => {
     log.warn('ForgeFrame MCP failed to start (non-fatal):', err.message);
   });
@@ -2767,6 +2786,7 @@ app.on('before-quit', () => {
     try {
       metrics.endSession(currentSessionId);
       database.sessions.update(currentSessionId, { endedAt: new Date().toISOString() });
+      forgeframeSync.syncSessionEnd();
     } catch (_) {}
   }
   forgeframeMcp.close();

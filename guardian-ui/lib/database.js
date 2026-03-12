@@ -10,6 +10,11 @@ const path = require('path');
 const fs = require('fs');
 const { FILES, DIRS } = require('./paths');
 const log = require('./logger');
+let _sync = null;
+function sync() {
+  if (!_sync) try { _sync = require('./forgeframe-sync'); } catch { _sync = false; }
+  return _sync || null;
+}
 
 let _db = null;
 
@@ -643,6 +648,7 @@ const notes = {
       now, now
     );
 
+    sync()?.syncNote({ id, type: note.type, title: note.title, content: note.content, tags: note.tags });
     return id;
   },
 
@@ -665,6 +671,8 @@ const notes = {
       UPDATE notes SET title = ?, content = ?, color = ?, tags = ?, updated_at = ?
       WHERE id = ?
     `).run(newTitle, newContent, newColor, newTags, now, id);
+
+    sync()?.syncNote({ id, type: note.type, title: newTitle, content: newContent, tags: newTags });
   },
 
   get(id) {
@@ -786,6 +794,7 @@ const queue = {
       item.priority || 0,
       new Date().toISOString()
     );
+    sync()?.syncQueueItem({ id, text: item.text, status: item.status || 'open' });
     return id;
   },
 
@@ -856,6 +865,7 @@ const compression = {
       item.status || 'active',
       now, now
     );
+    sync()?.syncCompression({ id, level: item.level, content: item.content, strength: item.strength, status: item.status });
     return id;
   },
 
