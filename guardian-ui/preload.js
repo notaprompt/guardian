@@ -378,6 +378,13 @@ contextBridge.exposeInMainWorld('guardian', {
     sessionCurrent: () => ipcRenderer.invoke('guardian:forgeframe:sessionCurrent'),
   },
 
+  // ── Sovereign Layer ───────────────────────────────────
+  sovereign: {
+    unlock: (passphrase) => ipcRenderer.invoke('guardian:sovereign:unlock', { passphrase }),
+    lock: () => ipcRenderer.invoke('guardian:sovereign:lock'),
+    status: () => ipcRenderer.invoke('guardian:sovereign:status'),
+  },
+
   // ── System ──────────────────────────────────────────
   system: {
     info: () => ipcRenderer.invoke('guardian:system:info')

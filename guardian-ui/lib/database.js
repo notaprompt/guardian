@@ -10,6 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const { FILES, DIRS } = require('./paths');
 const log = require('./logger');
+const sovereign = require('./sovereign');
 let _sync = null;
 function sync() {
   if (!_sync) try { _sync = require('./forgeframe-sync'); } catch { _sync = false; }
@@ -17,6 +18,15 @@ function sync() {
 }
 
 let _db = null;
+let _sovereignPassphrase = null;
+
+function setSovereignPassphrase(passphrase) {
+  _sovereignPassphrase = passphrase || null;
+}
+
+function isSovereignUnlocked() {
+  return _sovereignPassphrase !== null;
+}
 
 // ── Shared Utilities ────────────────────────────────────────
 
@@ -630,21 +640,45 @@ const messages = {
 
 // ── Notes ────────────────────────────────────────────────────
 
+function _decryptNote(row) {
+  if (row && row.sensitivity === 'private' && sovereign.isEncrypted(row.content)) {
+    if (_sovereignPassphrase) {
+      try {
+        row.content = sovereign.decrypt(row.content, _sovereignPassphrase);
+      } catch (_) {
+        row.content = '[encrypted]';
+      }
+    } else {
+      row.content = '[encrypted]';
+    }
+  }
+  return row;
+}
+
 const notes = {
   create(note) {
     const now = new Date().toISOString();
     const id = note.id || generateId('note');
+    const sensitivity = note.sensitivity || 'surface';
+    let content = note.content || '';
+
+    // Encrypt private entries at rest when passphrase is available
+    if (sensitivity === 'private' && _sovereignPassphrase) {
+      content = sovereign.encrypt(content, _sovereignPassphrase);
+    }
+
     db().prepare(`
-      INSERT INTO notes (id, type, title, content, color, project_id, tags, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO notes (id, type, title, content, color, project_id, tags, sensitivity, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       note.type || 'scratch',
       note.title || '',
-      note.content || '',
+      content,
       note.color || 'default',
       note.projectId || null,
       JSON.stringify(note.tags || []),
+      sensitivity,
       now, now
     );
 
@@ -663,20 +697,28 @@ const notes = {
     }
 
     const newTitle = updates.title !== undefined ? updates.title : note.title;
-    const newContent = updates.content !== undefined ? updates.content : note.content;
     const newColor = updates.color !== undefined ? updates.color : note.color;
     const newTags = updates.tags !== undefined ? JSON.stringify(updates.tags) : note.tags;
+    const newSensitivity = updates.sensitivity !== undefined ? updates.sensitivity : (note.sensitivity || 'surface');
+
+    let newContent = updates.content !== undefined ? updates.content : note.content;
+
+    // Encrypt private entries at rest when passphrase is available
+    if (newSensitivity === 'private' && _sovereignPassphrase && updates.content !== undefined) {
+      newContent = sovereign.encrypt(newContent, _sovereignPassphrase);
+    }
 
     db().prepare(`
-      UPDATE notes SET title = ?, content = ?, color = ?, tags = ?, updated_at = ?
+      UPDATE notes SET title = ?, content = ?, color = ?, tags = ?, sensitivity = ?, updated_at = ?
       WHERE id = ?
-    `).run(newTitle, newContent, newColor, newTags, now, id);
+    `).run(newTitle, newContent, newColor, newTags, newSensitivity, now, id);
 
     sync()?.syncNote({ id, type: note.type, title: newTitle, content: newContent, tags: newTags });
   },
 
   get(id) {
-    return db().prepare('SELECT * FROM notes WHERE id = ?').get(id);
+    const row = db().prepare('SELECT * FROM notes WHERE id = ?').get(id);
+    return row ? _decryptNote(row) : null;
   },
 
   list(opts = {}) {
@@ -692,12 +734,16 @@ const notes = {
       where.push('project_id = ?');
       params.push(opts.projectId);
     }
+    // Context gating: exclude private entries from LLM context by default
+    if (opts.excludePrivate) {
+      where.push("sensitivity != 'private'");
+    }
 
     if (where.length > 0) {
       sql += ' WHERE ' + where.join(' AND ');
     }
     sql += ' ORDER BY updated_at DESC';
-    return db().prepare(sql).all(...params);
+    return db().prepare(sql).all(...params).map(_decryptNote);
   },
 
   delete(id) {
@@ -1416,4 +1462,4 @@ function rebuildFTS() {
   }
 }
 
-module.exports = { open, close, db, sessions, messages, notes, usage, queue, compression, search, migrateFromJSON, noteSources, entityNotes, providerStore, reframe, importBatches, reflections, rebuildFTS, generateId, buildFtsQuery };
+module.exports = { open, close, db, sessions, messages, notes, usage, queue, compression, search, migrateFromJSON, noteSources, entityNotes, providerStore, reframe, importBatches, reflections, rebuildFTS, generateId, buildFtsQuery, setSovereignPassphrase, isSovereignUnlocked };

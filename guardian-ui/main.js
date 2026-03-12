@@ -1268,6 +1268,30 @@ ipcMain.handle('guardian:notes:revert', (event, { id, versionId }) => {
   }
 });
 
+// ── Sovereign Layer ─────────────────────────────────────────────
+
+ipcMain.handle('guardian:sovereign:unlock', (event, { passphrase }) => {
+  try {
+    database.setSovereignPassphrase(passphrase);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:sovereign:lock', () => {
+  try {
+    database.setSovereignPassphrase(null);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('guardian:sovereign:status', () => {
+  return { ok: true, unlocked: database.isSovereignUnlocked() };
+});
+
 // ── Usage (SQLite) ──────────────────────────────────────────────
 
 ipcMain.handle('guardian:usage:load', () => {
