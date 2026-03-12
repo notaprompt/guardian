@@ -2104,6 +2104,29 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+/* ── Weekly Synthesis Card ────────────────────────── */
+
+.session-context__weekly {
+  padding: 6px 0 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.session-context__weekly-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--white-45);
+}
+
+.session-context__weekly-stats span {
+  padding: 1px 6px;
+  border: 1px solid var(--white-08);
+  border-radius: 8px;
+}
+
 /* ── Queue Suggestion (entity-to-queue match) ──────── */
 
 .queue-suggestion {

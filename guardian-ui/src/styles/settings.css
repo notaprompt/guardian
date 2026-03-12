@@ -663,6 +663,27 @@
   white-space: nowrap;
 }
 
+/* ── Privacy Section ─────────────────────────────────────── */
+
+.settings-privacy-indicator {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  border: 1px solid #9a5a5a;
+  color: #c87a7a;
+  letter-spacing: 0.04em;
+}
+
+.settings-privacy-indicator--unlocked {
+  border-color: #5a9a6a;
+  color: #7aba8a;
+}
+
+.settings-privacy-unlock {
+  gap: 8px;
+}
+
 /* ── About Section ───────────────────────────────────────── */
 
 .settings-about {

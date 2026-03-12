@@ -2187,6 +2187,23 @@ ipcMain.handle('guardian:metrics:track', (event, { feature }) => {
   }
 });
 
+// ── Weekly Stats ────────────────────────────────────────────────
+
+ipcMain.handle('guardian:stats:weekly', () => {
+  try {
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    const db = database.db();
+    const sessions = db.prepare('SELECT COUNT(*) as c FROM sessions WHERE started_at > ?').get(weekAgo)?.c || 0;
+    const entities = db.prepare('SELECT COUNT(*) as c FROM entities WHERE created_at > ?').get(weekAgo)?.c || 0;
+    const notes = db.prepare('SELECT COUNT(*) as c FROM notes WHERE created_at > ?').get(weekAgo)?.c || 0;
+    const resolved = db.prepare("SELECT COUNT(*) as c FROM queue_items WHERE status = 'resolved' AND updated_at > ?").get(weekAgo)?.c || 0;
+    return { ok: true, sessions, entities, notes, resolved };
+  } catch (e) {
+    log.error('Weekly stats failed:', e.message);
+    return { ok: false, error: e.message, sessions: 0, entities: 0, notes: 0, resolved: 0 };
+  }
+});
+
 // ── System Info ─────────────────────────────────────────────────
 
 ipcMain.handle('guardian:system:info', () => ({
@@ -2510,7 +2527,12 @@ ipcMain.handle('guardian:privacy:setSensitivity', (event, { table, id, sensitivi
     if (!PRIVACY_LEVELS.includes(sensitivity)) {
       return { ok: false, error: `Invalid sensitivity: ${sensitivity}` };
     }
-    database.db().prepare(`UPDATE ${table} SET sensitivity = ? WHERE id = ?`).run(sensitivity, id);
+    // Notes use database.notes.update to handle encrypt/decrypt transitions
+    if (table === 'notes') {
+      database.notes.update(id, { sensitivity });
+    } else {
+      database.db().prepare(`UPDATE ${table} SET sensitivity = ? WHERE id = ?`).run(sensitivity, id);
+    }
     return { ok: true };
   } catch (e) {
     log.error('Set sensitivity failed:', e.message);

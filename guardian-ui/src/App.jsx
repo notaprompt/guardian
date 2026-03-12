@@ -84,6 +84,8 @@ export default function App() {
   const toggleSidebar = useStore((s) => s.toggleSidebar);
   const pipelineStatus = useStore((s) => s.pipelineStatus);
   const initPipeline = useStore((s) => s.initPipeline);
+  const fetchGraph = useStore((s) => s.fetchGraph);
+  const fetchCompression = useStore((s) => s.fetchCompression);
   const toggleTerminalWindow = useStore((s) => s.toggleTerminalWindow);
   const terminalDocked = useStore((s) => s.terminalDocked);
   const undockTerminal = useStore((s) => s.undockTerminal);
@@ -129,7 +131,9 @@ export default function App() {
     loadA11yPreferences();
     loadGuide();
     initPipeline();
-  }, [setSystemInfo, fetchSessions, fetchNotes, fetchQueue, fetchProfile, fetchModelSettings, loadLayout, loadA11yPreferences, loadGuide, initPipeline]);
+    fetchGraph();
+    fetchCompression();
+  }, [setSystemInfo, fetchSessions, fetchNotes, fetchQueue, fetchProfile, fetchModelSettings, loadLayout, loadA11yPreferences, loadGuide, initPipeline, fetchGraph, fetchCompression]);
 
   // Subscribe to telemetry pushes from main process
   useEffect(() => {

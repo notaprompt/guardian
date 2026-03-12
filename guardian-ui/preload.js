@@ -378,6 +378,11 @@ contextBridge.exposeInMainWorld('guardian', {
     sessionCurrent: () => ipcRenderer.invoke('guardian:forgeframe:sessionCurrent'),
   },
 
+  // ── Weekly Stats ─────────────────────────────────────
+  stats: {
+    weekly: () => ipcRenderer.invoke('guardian:stats:weekly'),
+  },
+
   // ── Sovereign Layer ───────────────────────────────────
   sovereign: {
     unlock: (passphrase) => ipcRenderer.invoke('guardian:sovereign:unlock', { passphrase }),

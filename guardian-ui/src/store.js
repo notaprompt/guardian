@@ -694,6 +694,8 @@ const useStore = create((set, get) => ({
           }
         }
       }
+      // Refresh graph to trigger tab unlock checks after pipeline extraction
+      get().fetchGraph();
     });
   },
 
@@ -731,11 +733,36 @@ const useStore = create((set, get) => ({
       ? { id: sorted[0].id, title: sorted[0].title }
       : null;
 
+    // Detect first session of the week — trigger weekly synthesis
+    const thisWeekSessions = sessions.filter(s => {
+      const d = new Date(s.started_at);
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      return d >= startOfWeek;
+    });
+    if (thisWeekSessions.length <= 1 && !get().weeklyStats) {
+      get().fetchWeeklyStats();
+    }
+
     const hasContent = openQueue.length > 0 || recentPatterns.length > 0 || awareness || lastSession;
     set({ sessionContext: hasContent ? { queueItems: openQueue, patterns: recentPatterns, awareness, weekSessions, lastSession } : null });
   },
 
   dismissSessionContext: () => set({ sessionContext: null }),
+
+  // ── Weekly Synthesis ──────────────────────────────
+  weeklyStats: null,
+
+  fetchWeeklyStats: async () => {
+    try {
+      const result = await window.guardian?.stats?.weekly();
+      if (result?.ok) set({ weeklyStats: result });
+    } catch (e) {
+      console.error('[store] fetchWeeklyStats failed:', e);
+    }
+  },
 
   // ── Awareness-Trap Detection ─────────────────
   // Detection result from main process, or null if no pattern detected

@@ -16,6 +16,7 @@ const SECTIONS = [
   { id: 'import',        label: 'Memory Import',   icon: '\u21E9' },
   { id: 'usage',         label: 'Usage Stats',     icon: '\u2261' },
   { id: 'shortcuts',     label: 'Shortcuts',       icon: '\u2328' },
+  { id: 'privacy',       label: 'Privacy',          icon: '\u2616' },
   { id: 'about',         label: 'About',           icon: '\u2609' },
 ];
 
@@ -257,6 +258,7 @@ function SettingsPanelInner() {
             )}
             {activeSection === 'usage' && <UsageStatsSection />}
             {activeSection === 'shortcuts' && <ShortcutsSection />}
+            {activeSection === 'privacy' && <PrivacySection />}
             {activeSection === 'about' && <AboutSection />}
           </div>
         </div>
@@ -934,6 +936,102 @@ function ShortcutsSection() {
           </div>
         ))}
       </div>
+    </>
+  );
+}
+
+function PrivacySection() {
+  const [status, setStatus] = useState(null);
+  const [passphrase, setPassphrase] = useState('');
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    window.guardian?.sovereign?.status().then((r) => {
+      if (r) setStatus(r);
+    });
+  }, []);
+
+  const handleUnlock = async () => {
+    setError(null);
+    const result = await window.guardian?.sovereign?.unlock(passphrase);
+    if (result?.ok) {
+      setPassphrase('');
+      setStatus({ ...status, locked: false });
+    } else {
+      setError(result?.error || 'Unlock failed');
+    }
+  };
+
+  const handleLock = async () => {
+    const result = await window.guardian?.sovereign?.lock();
+    if (result?.ok) {
+      setStatus({ ...status, locked: true });
+    }
+  };
+
+  const isLocked = status?.locked !== false;
+
+  return (
+    <>
+      <div className="settings-section__title">Privacy</div>
+      <div className="settings-row">
+        <div className="settings-row__info">
+          <div className="settings-row__desc">
+            Private notes are encrypted at rest. Unlock to view and edit.
+          </div>
+        </div>
+      </div>
+      <div className="settings-row">
+        <div className="settings-row__info">
+          <div className="settings-row__label">Encryption Status</div>
+        </div>
+        <div className="settings-row__control">
+          <span className={`settings-privacy-indicator${isLocked ? '' : ' settings-privacy-indicator--unlocked'}`}>
+            {isLocked ? 'locked' : 'unlocked'}
+          </span>
+        </div>
+      </div>
+      {isLocked ? (
+        <div className="settings-row">
+          <div className="settings-row__info">
+            <div className="settings-row__label">Unlock</div>
+          </div>
+          <div className="settings-row__control settings-privacy-unlock">
+            <input
+              type="password"
+              className="settings-key-input"
+              placeholder="Passphrase"
+              value={passphrase}
+              onChange={(e) => setPassphrase(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
+            />
+            <button className="settings-link" onClick={handleUnlock} disabled={!passphrase}>
+              Unlock
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="settings-row">
+          <div className="settings-row__info">
+            <div className="settings-row__label">Lock</div>
+            <div className="settings-row__desc">
+              Re-encrypt private notes and clear the decryption key from memory
+            </div>
+          </div>
+          <div className="settings-row__control">
+            <button className="settings-link" onClick={handleLock}>
+              Lock
+            </button>
+          </div>
+        </div>
+      )}
+      {error && (
+        <div className="settings-row">
+          <div className="settings-row__info">
+            <div className="settings-row__desc" style={{ color: '#c87a7a' }}>{error}</div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
