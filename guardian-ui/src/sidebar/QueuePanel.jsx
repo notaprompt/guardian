@@ -14,6 +14,8 @@ function QueuePanel() {
   const fetchGroundingStats = useStore((s) => s.fetchGroundingStats);
   const hideGrounding = useStore((s) => s.hideGrounding);
   const setSensitivity = useStore((s) => s.setSensitivity);
+  const sessions = useStore((s) => s.sessions);
+  const resumeSession = useStore((s) => s.resumeSession);
 
   const [newThread, setNewThread] = useState('');
   const [groundingType, setGroundingType] = useState(null);
@@ -78,7 +80,21 @@ function QueuePanel() {
         {queueItems.map((item) => (
           <React.Fragment key={item.id}>
             <div className={`queue-item queue-item--${item.status}${item.sensitivity && item.sensitivity !== 'surface' ? ` queue-item--${item.sensitivity}` : ''}`} role="listitem">
-              <div className="queue-item__text">{item.text}</div>
+              <div className="queue-item__text">
+                {item.text}
+                {item.source_session_id && (() => {
+                  const sess = sessions.find(s => s.id === item.source_session_id);
+                  return (
+                    <div
+                      className="queue-item__source-link"
+                      onClick={(e) => { e.stopPropagation(); resumeSession(item.source_session_id); }}
+                      title={`From session: ${sess?.title || item.source_session_id.slice(0, 8)}`}
+                    >
+                      from: {sess?.title || item.source_session_id.slice(0, 8) + '...'}
+                    </div>
+                  );
+                })()}
+              </div>
               <div className="queue-item__actions">
                 {item.sensitivity && item.sensitivity !== 'surface' && (
                   <button

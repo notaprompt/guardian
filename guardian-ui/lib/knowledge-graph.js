@@ -272,14 +272,60 @@ function getRelationships(db, opts = {}) {
  * Get sessions that mention a specific entity.
  */
 function getEntitySessions(db, entityId) {
+  // Get the entity name for message content search
+  const entity = db.prepare('SELECT name FROM entities WHERE id = ?').get(entityId);
+  const name = entity?.name || '';
+
+  // If we have a name, also search message content; otherwise just use relationships + entity_notes
+  if (name) {
+    return db.prepare(`
+      SELECT DISTINCT s.id, s.title, s.started_at, s.summary FROM (
+        -- Sessions linked via relationships
+        SELECT s.id, s.title, s.started_at, s.summary
+        FROM relationships r
+        JOIN sessions s ON r.session_id = s.id
+        WHERE r.source_entity_id = ? OR r.target_entity_id = ?
+
+        UNION
+
+        -- Sessions where messages mention the entity by name
+        SELECT s.id, s.title, s.started_at, s.summary
+        FROM messages m
+        JOIN sessions s ON m.session_id = s.id
+        WHERE m.content LIKE '%' || ? || '%'
+
+        UNION
+
+        -- Sessions linked through entity_notes (notes with source_session_id)
+        SELECT s.id, s.title, s.started_at, s.summary
+        FROM entity_notes en
+        JOIN notes n ON n.id = en.note_id
+        JOIN sessions s ON n.source_session_id = s.id
+        WHERE en.entity_id = ?
+      ) s
+      ORDER BY s.started_at DESC
+      LIMIT 20
+    `).all(entityId, entityId, name, entityId);
+  }
+
   return db.prepare(`
-    SELECT DISTINCT s.id, s.title, s.started_at, s.summary
-    FROM relationships r
-    JOIN sessions s ON r.session_id = s.id
-    WHERE r.source_entity_id = ? OR r.target_entity_id = ?
+    SELECT DISTINCT s.id, s.title, s.started_at, s.summary FROM (
+      SELECT s.id, s.title, s.started_at, s.summary
+      FROM relationships r
+      JOIN sessions s ON r.session_id = s.id
+      WHERE r.source_entity_id = ? OR r.target_entity_id = ?
+
+      UNION
+
+      SELECT s.id, s.title, s.started_at, s.summary
+      FROM entity_notes en
+      JOIN notes n ON n.id = en.note_id
+      JOIN sessions s ON n.source_session_id = s.id
+      WHERE en.entity_id = ?
+    ) s
     ORDER BY s.started_at DESC
     LIMIT 20
-  `).all(entityId, entityId);
+  `).all(entityId, entityId, entityId);
 }
 
 module.exports = {

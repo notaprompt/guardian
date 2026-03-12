@@ -201,6 +201,11 @@ export default function ReflectionsExplorer() {
       {hasData && (
         <div className="reflections-explorer__stats">
           {formatDateRange(stats)}
+          {stats.messages > 0 && (
+            <span className="reflections-explorer__embed-count">
+              {' -- '}{stats.embedded || 0}/{stats.messages} embedded
+            </span>
+          )}
         </div>
       )}
 

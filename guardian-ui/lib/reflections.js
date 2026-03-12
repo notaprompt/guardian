@@ -316,12 +316,19 @@ function getStats(db) {
     LIMIT 10
   `).all();
 
+  // Embedding coverage for semantic search indicator
+  let embedded = 0;
+  try {
+    embedded = db.prepare('SELECT COUNT(*) as c FROM reflection_embeddings').get().c;
+  } catch (_) { /* table may not exist yet */ }
+
   return {
     conversations: convos,
     messages: msgs,
     humanMessages: humanMsgs,
     dateRange: { earliest, latest },
     topConversations,
+    embedded,
   };
 }
 

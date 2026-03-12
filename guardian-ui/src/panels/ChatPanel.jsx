@@ -8,6 +8,7 @@ import ThinkingIndicator from '../components/ThinkingIndicator';
 import AwarenessAlert from '../components/AwarenessAlert';
 import SessionContext from '../components/SessionContext';
 import FirstSessionGuide from '../components/FirstSessionGuide';
+import QueueSuggestion from '../components/QueueSuggestion';
 import useStore from '../store';
 
 function ChatPanelInner() {
@@ -45,6 +46,7 @@ function ChatPanelInner() {
   const initLibrarian = useStore((s) => s.initLibrarian);
   const pipelineDigest = useStore((s) => s.pipelineDigest);
   const clearPipelineDigest = useStore((s) => s.clearPipelineDigest);
+  const pipelineStatus = useStore((s) => s.pipelineStatus);
   const navigateTo = useStore((s) => s.navigateTo);
   const quietMode = useStore((s) => s.quietMode);
   const buildSessionContext = useStore((s) => s.buildSessionContext);
@@ -393,6 +395,18 @@ function ChatPanelInner() {
           </div>
         )}
 
+        {/* Pipeline status bar -- real-time step progress */}
+        {pipelineStatus && !quietMode && (
+          <div className="chat-pipeline-status" role="status" aria-live="polite">
+            <span className="chat-pipeline-status__indicator" aria-hidden="true" />
+            <span className="chat-pipeline-status__label">
+              {pipelineStatus.step
+                ? pipelineStatus.step.replace('-', ' ')
+                : 'starting pipeline'}
+            </span>
+          </div>
+        )}
+
         {/* Pipeline digest card */}
         {pipelineDigest && !quietMode && (
           <div className="chat-digest" role="status" aria-live="polite">
@@ -435,6 +449,8 @@ function ChatPanelInner() {
             </div>
           </div>
         )}
+
+        <QueueSuggestion />
 
         <FirstSessionGuide />
 

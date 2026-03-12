@@ -591,7 +591,8 @@ function runPostChatPipeline(sessionId) {
                   database.db(), entities, relationships, sessionId
                 );
                 log.info('Knowledge graph extracted:', result.entityCount, 'entities,', result.relationshipCount, 'relationships');
-                send('guardian:graph:extracted', { sessionId, ...result });
+                const entityNames = entities.map(e => e.name).filter(Boolean);
+                send('guardian:graph:extracted', { sessionId, ...result, entityNames });
               } catch (e) {
                 log.warn('Knowledge graph merge failed:', e.message);
               }
@@ -643,7 +644,7 @@ function runPostChatPipeline(sessionId) {
   const stepNames = ['awareness', 'summarize', 'embeddings', 'knowledge-graph', 'librarian'];
 
   // Digest collector — each step can append results
-  const digest = { sessionId, awareness: null, summarized: false, embeddingChunks: 0, entities: 0, relationships: 0, notesCreated: 0, artifactsFiled: 0 };
+  const digest = { sessionId, awareness: null, summarized: false, embeddingChunks: 0, entities: 0, relationships: 0, notesCreated: 0, artifactsFiled: 0, entityNames: [] };
 
   // Patch steps to collect digest data via existing send() events
   const origSend = send;
@@ -651,7 +652,7 @@ function runPostChatPipeline(sessionId) {
     if (channel === 'guardian:awareness:detected') digest.awareness = data?.topic || true;
     if (channel === 'guardian:session:summaryReady') digest.summarized = true;
     if (channel === 'guardian:embeddings:indexed') digest.embeddingChunks = data?.chunks || 0;
-    if (channel === 'guardian:graph:extracted') { digest.entities = data?.entityCount || 0; digest.relationships = data?.relationshipCount || 0; }
+    if (channel === 'guardian:graph:extracted') { digest.entities = data?.entityCount || 0; digest.relationships = data?.relationshipCount || 0; digest.entityNames = data?.entityNames || []; }
     if (channel === 'guardian:librarian:complete') { digest.notesCreated = data?.notesCreated || 0; digest.artifactsFiled = data?.artifactsFiled || 0; }
     origSend(channel, data);
   };

@@ -175,6 +175,7 @@ const useStore = create((set, get) => ({
     thinkingBlocks: {},
     activeSessionId: null,
     awareness: null,
+    queueSuggestion: null,
   }),
 
   // ── Usage Tracking ─────────────────────────────────────────
@@ -676,13 +677,34 @@ const useStore = create((set, get) => ({
 
   initPipeline: () => {
     window.guardian?.pipeline?.onStatus((status) => set({ pipelineStatus: status.active ? status : null }));
-    window.guardian?.pipeline?.onDigest((digest) => set({ pipelineDigest: digest }));
+    window.guardian?.pipeline?.onDigest((digest) => {
+      set({ pipelineDigest: digest });
+      // Check for entity-to-queue matches (queue suggestion)
+      const names = digest?.entityNames;
+      if (names && names.length > 0) {
+        const openItems = get().queueItems.filter(i => i.status === 'open');
+        if (openItems.length > 0) {
+          const lowerNames = names.map(n => n.toLowerCase());
+          const matches = openItems.filter(item => {
+            const itemText = (item.text || '').toLowerCase();
+            return lowerNames.some(name => itemText.includes(name) || name.includes(itemText.split(' ')[0]));
+          });
+          if (matches.length > 0) {
+            set({ queueSuggestion: { entityNames: names.slice(0, 3), queueItems: matches.slice(0, 2) } });
+          }
+        }
+      }
+    });
   },
 
   clearPipelineDigest: () => set({ pipelineDigest: null }),
 
+  // ── Queue Suggestion (entity-to-queue match) ──────
+  queueSuggestion: null,  // null | { entityNames, queueItems }
+  dismissQueueSuggestion: () => set({ queueSuggestion: null }),
+
   // ── Session Context (Proactive Surfacing) ──────────
-  sessionContext: null,  // null | { queueItems, patterns, awareness, weekSessions }
+  sessionContext: null,  // null | { queueItems, patterns, awareness, weekSessions, lastSession }
   quietMode: false,
 
   setQuietMode: (enabled) => {
@@ -702,8 +724,15 @@ const useStore = create((set, get) => ({
     const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
     const weekSessions = sessions.filter(s => s.started_at > weekAgo).length;
 
-    const hasContent = openQueue.length > 0 || recentPatterns.length > 0 || awareness;
-    set({ sessionContext: hasContent ? { queueItems: openQueue, patterns: recentPatterns, awareness, weekSessions } : null });
+    // "Continue from last session" if within 24 hours
+    const dayAgo = new Date(Date.now() - 24 * 3600000).toISOString();
+    const sorted = [...sessions].sort((a, b) => (b.started_at || '').localeCompare(a.started_at || ''));
+    const lastSession = sorted.length > 0 && sorted[0].started_at > dayAgo
+      ? { id: sorted[0].id, title: sorted[0].title }
+      : null;
+
+    const hasContent = openQueue.length > 0 || recentPatterns.length > 0 || awareness || lastSession;
+    set({ sessionContext: hasContent ? { queueItems: openQueue, patterns: recentPatterns, awareness, weekSessions, lastSession } : null });
   },
 
   dismissSessionContext: () => set({ sessionContext: null }),
@@ -1192,6 +1221,8 @@ const useStore = create((set, get) => ({
       set({ embeddingProgress: { done: 0, total: 0, status: 'starting' } });
       await window.guardian.reflections.embed();
       set({ embeddingProgress: { done: 0, total: 0, status: 'done' } });
+      // Refresh stats so embedded count updates
+      get().loadReflectionStats();
     } catch (e) {
       set({ embeddingProgress: { done: 0, total: 0, status: 'error', errors: [e.message] } });
     }

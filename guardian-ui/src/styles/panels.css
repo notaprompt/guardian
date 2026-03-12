@@ -1722,6 +1722,21 @@
   border-color: rgba(255, 80, 80, 0.2);
 }
 
+.queue-item__source-link {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--glow);
+  opacity: 0.7;
+  margin-top: 3px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.queue-item__source-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 /* ── Session Summary ──────────────────────────────────────── */
 
 .search-result__summary {
@@ -1849,6 +1864,47 @@
 
 /* ── Chat Librarian Status ───────────────────────────────── */
 
+/* ── Pipeline Status Bar (real-time step progress) ────────── */
+
+.chat-pipeline-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 14px;
+  padding: 5px 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--glow);
+  background: var(--glow-dim);
+  border: 1px solid var(--glow-trace);
+  border-radius: 6px;
+  animation: pipeline-bar-enter 0.2s ease-out;
+}
+
+.chat-pipeline-status__indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--glow);
+  animation: pipeline-dot-pulse 1.4s ease-in-out infinite;
+}
+
+.chat-pipeline-status__label {
+  text-transform: lowercase;
+}
+
+@keyframes pipeline-dot-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes pipeline-bar-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ── Pipeline Digest Card ─────────────────────────────────── */
 
 .chat-digest {
@@ -1861,6 +1917,7 @@
   font-size: 10px;
   letter-spacing: 0.03em;
   color: var(--white-50);
+  animation: pipeline-bar-enter 0.25s ease-out;
 }
 
 .chat-digest__header {
@@ -1996,6 +2053,118 @@
   color: var(--white-40);
   border-color: var(--white-12);
   background: rgba(255, 255, 255, 0.02);
+}
+
+.session-context__continue {
+  margin-bottom: 6px;
+  padding: 3px 8px;
+  font-size: 10px;
+  color: var(--glow);
+  cursor: pointer;
+  border-left: 2px solid var(--glow-trace);
+  transition: all 0.15s ease;
+}
+
+.session-context__continue:hover {
+  color: var(--white-90);
+  background: var(--glow-dim);
+}
+
+.session-context__queue {
+  margin-bottom: 6px;
+}
+
+.session-context__queue-label {
+  display: inline-block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--white-25);
+  margin-bottom: 3px;
+  cursor: pointer;
+}
+
+.session-context__queue-label:hover {
+  color: var(--white-50);
+}
+
+.session-context__queue-item {
+  padding: 2px 8px;
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--white-40);
+  border-left: 2px solid var(--white-08);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.session-context__queue-item:hover {
+  color: var(--white-70);
+  border-color: var(--glow-trace);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Queue Suggestion (entity-to-queue match) ──────── */
+
+.queue-suggestion {
+  margin: 6px 14px;
+  padding: 8px 12px;
+  background: rgba(100, 180, 255, 0.03);
+  border: 1px solid rgba(100, 180, 255, 0.1);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--white-40);
+  animation: awareness-fade-in 0.6s ease-out;
+}
+
+.queue-suggestion__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.queue-suggestion__label {
+  text-transform: uppercase;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(100, 180, 255, 0.5);
+}
+
+.queue-suggestion__dismiss {
+  background: none;
+  border: none;
+  color: var(--white-30);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0 4px;
+}
+
+.queue-suggestion__dismiss:hover { color: var(--white-60); }
+
+.queue-suggestion__text {
+  display: block;
+  font-size: 10px;
+  color: var(--white-35);
+  margin-bottom: 4px;
+}
+
+.queue-suggestion__item {
+  padding: 3px 8px;
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--white-50);
+  border-left: 2px solid rgba(100, 180, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.queue-suggestion__item:hover {
+  color: var(--white-80);
+  border-color: rgba(100, 180, 255, 0.4);
+  background: rgba(100, 180, 255, 0.04);
 }
 
 .chat-librarian-status {
