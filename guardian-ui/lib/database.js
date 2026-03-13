@@ -288,6 +288,26 @@ function _createSchema() {
     CREATE INDEX IF NOT EXISTS idx_reframe_type ON reframe_events(reframe_type);
     CREATE INDEX IF NOT EXISTS idx_reframe_dimension ON reframe_events(identity_dimension);
     CREATE INDEX IF NOT EXISTS idx_reframe_acknowledged ON reframe_events(acknowledged);
+
+    -- Awareness-trap detection (TRIM 9.4)
+    CREATE TABLE IF NOT EXISTS awareness_topics (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+      topic TEXT NOT NULL,
+      raw_topic TEXT NOT NULL,
+      confidence REAL DEFAULT 1.0,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_awareness_topics_session ON awareness_topics(session_id);
+    CREATE INDEX IF NOT EXISTS idx_awareness_topics_topic ON awareness_topics(topic);
+
+    CREATE TABLE IF NOT EXISTS awareness_dismissals (
+      id TEXT PRIMARY KEY,
+      topic TEXT NOT NULL,
+      dismissed_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_awareness_dismissals_topic ON awareness_dismissals(topic);
   `);
 
   // Knowledge graph tables
@@ -1379,6 +1399,67 @@ const reframe = {
   },
 };
 
+// ── Awareness-Trap Detection ─────────────────────────────────
+
+const awareness = {
+  addTopic({ id, sessionId, topic, rawTopic, confidence, createdAt }) {
+    db().prepare(`
+      INSERT INTO awareness_topics (id, session_id, topic, raw_topic, confidence, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      sessionId,
+      topic,
+      rawTopic,
+      confidence != null ? confidence : 1.0,
+      createdAt || new Date().toISOString()
+    );
+    return id;
+  },
+
+  getTopicsForSession(sessionId) {
+    return db().prepare('SELECT * FROM awareness_topics WHERE session_id = ? ORDER BY created_at DESC').all(sessionId);
+  },
+
+  getRecurringTopics({ minSessions = 4, minSpanDays = 14 } = {}) {
+    return db().prepare(`
+      SELECT
+        topic,
+        COUNT(DISTINCT session_id) as session_count,
+        AVG(confidence) as avg_confidence,
+        CAST(julianday(MAX(created_at)) - julianday(MIN(created_at)) AS INTEGER) as span_days,
+        GROUP_CONCAT(DISTINCT session_id) as session_ids
+      FROM awareness_topics
+      GROUP BY topic
+      HAVING COUNT(DISTINCT session_id) >= ? AND
+        CAST(julianday(MAX(created_at)) - julianday(MIN(created_at)) AS INTEGER) >= ?
+      ORDER BY COUNT(DISTINCT session_id) DESC
+    `).all(minSessions, minSpanDays);
+  },
+
+  isDismissed(topic) {
+    const row = db().prepare(
+      'SELECT 1 FROM awareness_dismissals WHERE topic = ? AND expires_at > ? LIMIT 1'
+    ).get(topic, new Date().toISOString());
+    return !!row;
+  },
+
+  dismiss(topic) {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    // Upsert: delete existing then insert
+    db().prepare('DELETE FROM awareness_dismissals WHERE topic = ?').run(topic);
+    db().prepare(`
+      INSERT INTO awareness_dismissals (id, topic, dismissed_at, expires_at)
+      VALUES (?, ?, ?, ?)
+    `).run(generateId('ad'), topic, now.toISOString(), expiresAt.toISOString());
+  },
+
+  clearExpiredDismissals() {
+    db().prepare('DELETE FROM awareness_dismissals WHERE expires_at <= ?').run(new Date().toISOString());
+  },
+};
+
 // ── Import Batches ───────────────────────────────────────────
 
 const importBatches = {
@@ -1462,4 +1543,4 @@ function rebuildFTS() {
   }
 }
 
-module.exports = { open, close, db, sessions, messages, notes, usage, queue, compression, search, migrateFromJSON, noteSources, entityNotes, providerStore, reframe, importBatches, reflections, rebuildFTS, generateId, buildFtsQuery, setSovereignPassphrase, isSovereignUnlocked };
+module.exports = { open, close, db, sessions, messages, notes, usage, queue, compression, search, migrateFromJSON, noteSources, entityNotes, providerStore, reframe, awareness, importBatches, reflections, rebuildFTS, generateId, buildFtsQuery, setSovereignPassphrase, isSovereignUnlocked };

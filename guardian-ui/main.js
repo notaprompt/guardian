@@ -2516,7 +2516,7 @@ ipcMain.handle('guardian:dimensions:timeline', (event, { weeks }) => {
 
 // ── Privacy Layer ──────────────────────────────────────────────
 
-const PRIVACY_TABLES = ['notes', 'queue_items', 'compression_levels', 'reframe_events'];
+const PRIVACY_TABLES = ['notes', 'queue_items', 'compression_levels', 'reframe_events', 'awareness_topics'];
 const PRIVACY_LEVELS = ['surface', 'deep', 'private'];
 
 ipcMain.handle('guardian:privacy:setSensitivity', (event, { table, id, sensitivity }) => {

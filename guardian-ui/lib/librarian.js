@@ -568,6 +568,15 @@ function runPipeline({ sessionId, messages, db, onComplete, onError }) {
           });
         } catch (e) { log.warn('Reframe detector not available:', e.message); }
 
+        // Step 6: extract awareness topics (async, fire-and-forget — local model only)
+        try {
+          const awareness = require('./awareness');
+          awareness.extractTopics(messages, db, sessionId, {
+            onComplete: (count) => log.info('Awareness topics: extracted', count, 'for session', sessionId),
+            onError: (err) => log.warn('Awareness topic extraction failed for', sessionId, ':', err.message),
+          });
+        } catch (e) { log.warn('Awareness module not available:', e.message); }
+
         // Mark session extraction as complete
         try {
           db.sessions.update(sessionId, { extractionStatus: 'complete' });
